@@ -31,7 +31,7 @@ class TestPacker(TestCase):
         filepath = '{}/{}'.format(cls.WORKPATH, '*.png')
         for filename in glob.glob(filepath):
             os.remove(filename)
-        
+
     def test(self):
         input_filepaths = [filepath for filepath in glob.glob(self.WORKPATH + '/*.png')]
         output_filepath = self.WORKPATH + '/output.png'

@@ -16,7 +16,7 @@ def _long_description():
         return f.read()
 
 
-required=[
+required = [
     'Pillow>=5.0.0',
 ]
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
         author_email='Hasenpfote36@gmail.com',
         url='https://github.com/Hasenpfote/',
         download_url='',
-        packages = ['image_packer'],
+        packages=['image_packer'],
         keywords=[],
         classifiers=[
             'Programming Language :: Python',
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         python_requires='>=3.4',
         install_requires=required,
         entry_points={
-            'console_scripts':[
+            'console_scripts': [
                 'impack = image_packer.packer:main',
             ],
         }

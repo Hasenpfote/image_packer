@@ -89,7 +89,7 @@ def is_colliding(stable_point, current, others):
     '''Whether the rectangle on the stable point is in collide with another rectangles.
 
     Args:
-        stable_points (list(:class:`StablePoint`)):
+        stable_point (:class:`StablePoint`):
         current (:class:`Rect`):
         others (list(:class:`Rect`)):
 
@@ -265,7 +265,6 @@ def solve(pieces, container_width):
     pieces.sort(key=lambda piece: -piece.height)
     rects = run(pieces, container_width)
     
-
     container_height = 0
     for rect in rects:
         if rect.top > container_height:
