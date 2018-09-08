@@ -1,7 +1,7 @@
 __pycache__/
 /build
 /dist
-/fpq.egg-info
+/*.egg-info
 /temp
 /.tox
 /cover
