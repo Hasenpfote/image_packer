@@ -53,7 +53,7 @@ def main():
         type=str,
         action='append',
         required=True,
-        help=''
+        help='Setting the input file-path.'
     )
 
     parser.add_argument(
@@ -62,7 +62,7 @@ def main():
         type=str,
         action='store',
         required=True,
-        help=''
+        help='Setting the output file-path.'
     )
 
     parser.add_argument(
@@ -71,7 +71,7 @@ def main():
         type=int,
         action='store',
         required=True,
-        help=''
+        help='Setting the width of the container.'
     )
 
     parser.add_argument(
@@ -82,7 +82,7 @@ def main():
         default=(0, 0, 0, 0),
         metavar=('top', 'right', 'bottom', 'left'),
         action='store',
-        help=''
+        help='Setting the padding for each side of an image.'
     )
 
     parser.add_argument(
