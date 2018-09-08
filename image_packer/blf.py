@@ -230,6 +230,42 @@ def run(pieces, container_width):
     return rects
 
 
+def calc_container_height(rects):
+    '''Calculate a container height from rectangles.'''
+    container_height = 0
+    for rect in rects:
+        if rect.top > container_height:
+            container_height = rect.top
+
+    return container_height
+
+
+def calc_filling_rate(container_width, container_height, rects):
+    '''Calculate a filling rate.'''
+    area = sum(rect.area for rect in rects)
+    return area / (container_width * container_height)
+
+
+def solver1(pieces, container_width):
+    '''Inputs are sorted in descending order of height before execution.'''
+    pieces.sort(key=lambda piece: -piece.height)
+    rects = run(pieces, container_width)
+    container_height = calc_container_height(rects)
+    filling_rate = calc_filling_rate(container_width, container_height, rects)
+
+    return filling_rate, container_height, rects
+
+
+def solver2(pieces, container_width):
+    '''Inputs are sorted in descending order of area before execution.'''
+    pieces.sort(key=lambda piece: -piece.area)
+    rects = run(pieces, container_width)
+    container_height = calc_container_height(rects)
+    filling_rate = calc_filling_rate(container_width, container_height, rects)
+
+    return filling_rate, container_height, rects
+
+
 def solve(pieces, container_width):
     '''Obtain the highest filling rate result.
 
@@ -240,42 +276,16 @@ def solve(pieces, container_width):
     Returns:
         tuple(container_width, container_height, rects)
     '''
-    # 指定の幅より大きい長方形がある場合を考慮
     max_width = max(pieces, key=lambda piece: piece.width).width
     if container_width < max_width:
         container_width = max_width
 
-    results = list()
+    best_filling_rate = -1.0
+    result = (0, 0, None)
+    for solver in (solver1, solver2):
+        filling_rate, container_height, rects = solver(pieces, container_width)
+        if filling_rate > best_filling_rate:
+            best_filling_rate = filling_rate
+            result = (container_width, container_height, rects)
 
-    # 一回目
-    pieces.sort(key=lambda piece: -piece.area)
-    rects = run(pieces, container_width)
-
-    container_height = 0
-    for rect in rects:
-        if rect.top > container_height:
-            container_height = rect.top
-
-    area = sum(rect.area for rect in rects)
-    filling_rate = area / (container_width * container_height)
-
-    results.append((rects, container_height, filling_rate))
-
-    # 二回目
-    pieces.sort(key=lambda piece: -piece.height)
-    rects = run(pieces, container_width)
-    
-    container_height = 0
-    for rect in rects:
-        if rect.top > container_height:
-            container_height = rect.top
-
-    area = sum(rect.area for rect in rects)
-    filling_rate = area / (container_width * container_height)
-
-    results.append((rects, container_height, filling_rate))
-
-    # 充填率の降順で並び替え
-    results.sort(key=lambda result: -result[2])
-
-    return container_width, results[0][1], results[0][0]
+    return result
