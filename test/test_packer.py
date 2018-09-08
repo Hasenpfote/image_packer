@@ -3,6 +3,8 @@
 import glob
 import os
 import random
+import shutil
+import tempfile
 from PIL import Image
 from unittest import TestCase
 
@@ -12,29 +14,24 @@ from image_packer import packer
 
 
 class TestPacker(TestCase):
-
-    WORKPATH = './temp'
-
     @classmethod
     def setUpClass(cls):
-        if not os.path.exists(cls.WORKPATH):
-            os.mkdir(cls.WORKPATH)
+        cls.workpath = tempfile.mkdtemp(dir='.')
 
         for index, _ in enumerate(range(10)):
             w = random.randint(1, 64)
             h = random.randint(1, 64)
             image = Image.new('RGBA', (w, h), 'white')
-            image.save('{}/{}.png'.format(cls.WORKPATH, index))
+            image.save('{}/{}.png'.format(cls.workpath, index))
 
     @classmethod
     def tearDownClass(cls):
-        filepath = '{}/{}'.format(cls.WORKPATH, '*.png')
-        for filename in glob.glob(filepath):
-            os.remove(filename)
+        shutil.rmtree(cls.workpath)
+        pass
 
     def test(self):
-        input_filepaths = [filepath for filepath in glob.glob(self.WORKPATH + '/*.png')]
-        output_filepath = self.WORKPATH + '/output.png'
+        input_filepaths = [filepath for filepath in glob.glob(self.workpath + '/*.png')]
+        output_filepath = self.workpath + '/output.png'
         container_width = 128
         padding = (1, 1, 1, 1)
 
