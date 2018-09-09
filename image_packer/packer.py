@@ -47,6 +47,7 @@ def pack(
 
     input_filepaths = extract_filepaths(input_filepaths)
 
+    has_alpha = False
     for filepath in input_filepaths:
         with Image.open(filepath) as im:
             width = im.width + padding[1] + padding[3]
@@ -55,6 +56,9 @@ def pack(
             uid_to_filepath[uid] = filepath
             pieces.append(blf.Piece(uid=uid, width=width, height=height))
 
+            if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
+                has_alpha = True
+
     container_width, container_height, rects = blf.solve(
         pieces=pieces,
         container_width=container_width,
@@ -62,7 +66,10 @@ def pack(
         force_pow2=force_pow2
     )
 
-    blank_image = Image.new('RGBA', (container_width, container_height), 'black')
+    if has_alpha:
+        blank_image = Image.new('RGBA', (container_width, container_height), (0, 0, 0, 255))
+    else:
+        blank_image = Image.new('RGB', (container_width, container_height), (0, 0, 0))
 
     for rect in rects:
         x = rect.x + padding[3]
