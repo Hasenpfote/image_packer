@@ -27,7 +27,8 @@ def pack(
     container_width,
     padding=None,
     enable_auto_size=True,
-    force_pow2=False
+    enable_vertical_flip=True,
+    force_pow2=False,
 ):
     '''make a atlas.
 
@@ -37,6 +38,7 @@ def pack(
         container_width (int):
         padding (tuple):
         enable_auto_size (bool): If true, the size will be adjusted automatically.
+        enable_vertical_flip (bool): If true, flips the output upside down.
         force_pow2 (bool): If true, the power-of-two rule is forced.
     '''
     if padding is None:
@@ -73,7 +75,10 @@ def pack(
 
     for rect in rects:
         x = rect.x + padding[3]
-        y = (container_height - rect.top) + padding[0]
+        if enable_vertical_flip:
+            y = rect.bottom + padding[0]
+        else:
+            y = (container_height - rect.top) + padding[0]
         filepath = uid_to_filepath.get(rect.uid)
         with Image.open(filepath) as im:
             blank_image.paste(im, (x, y))
@@ -131,6 +136,12 @@ def main():
     )
 
     parser.add_argument(
+        '--disable-vertical-flip',
+        action='store_true',
+        help='Disable vertical flip.'
+    )
+
+    parser.add_argument(
         '--force-pow2',
         action='store_true',
         help='Force the power-of-two rule.'
@@ -145,6 +156,7 @@ def main():
             container_width=args.width,
             padding=args.padding,
             enable_auto_size=not args.disable_auto_size,
+            enable_vertical_flip=not args.disable_vertical_flip,
             force_pow2=args.force_pow2
         )
         sys.exit(0)
