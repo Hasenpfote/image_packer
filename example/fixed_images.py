@@ -15,7 +15,11 @@ def main():
 
     workpath = './image'
 
-    input_filepaths = [filepath for filepath in glob.glob(workpath + '/*.*')]
+    input_filepaths = [
+        workpath + '/*.png',
+        workpath + '/*.jpg',
+        workpath + '/*.bmp',
+    ]
     output_filepath = workpath + '/atlas.png'
     container_width = 128
     padding = (1, 1, 1, 1)

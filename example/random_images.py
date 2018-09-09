@@ -24,7 +24,9 @@ def main():
     workpath = tempfile.mkdtemp(dir='.')
     make_random_size_image(dirpath=workpath, min_size=1, max_size=64, n=10)
 
-    input_filepaths = [filepath for filepath in glob.glob(workpath + '/*.png')]
+    input_filepaths = [
+        workpath + '/*.png',
+    ]
     output_filepath = workpath + '/atlas.png'
     container_width = 100
     padding = (1, 1, 1, 1)
