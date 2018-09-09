@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import glob
+import os
+import sys
 import uuid
 from PIL import Image
 from . import blf
+
+
+def extract_filepaths(filepaths):
+    results = set()
+    for filepath in filepaths:
+        filepath = os.path.normpath(filepath)
+        if '*' in filepath:
+            for filepath_ in glob.glob(filepath):
+                results.add(filepath_)
+        else:
+            results.add(filepath)
+
+    return results
 
 
 def pack(
@@ -28,6 +44,8 @@ def pack(
 
     uid_to_filepath = dict()
     pieces = list()
+
+    input_filepaths = extract_filepaths(input_filepaths)
 
     for filepath in input_filepaths:
         with Image.open(filepath) as im:
@@ -67,7 +85,7 @@ def main():
         type=str,
         action='append',
         required=True,
-        help='Setting the input file-path.'
+        help='Setting the input file-path. An asterisk(*) wildcard can also be used.'
     )
 
     parser.add_argument(
@@ -100,21 +118,29 @@ def main():
     )
 
     parser.add_argument(
-        '-v', 
-        '--verbose', 
-        action='store_true', 
-        help=''
+        '--disable-auto-size',
+        action='store_true',
+        help='Disable automatic size adjustment.'
+    )
+
+    parser.add_argument(
+        '--force-pow2',
+        action='store_true',
+        help='Force the power-of-two rule.'
     )
 
     args = parser.parse_args()
 
-    pack(
-        input_filepaths=args.input,
-        output_filepath=args.output,
-        container_width=args.width,
-        padding=args.padding
-    )
-
-
-if __name__ == '__main__':
-    main()
+    try:
+        pack(
+            input_filepaths=args.input,
+            output_filepath=args.output,
+            container_width=args.width,
+            padding=args.padding,
+            enable_auto_size=not args.disable_auto_size,
+            force_pow2=args.force_pow2
+        )
+        sys.exit(0)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
