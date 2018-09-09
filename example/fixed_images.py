@@ -30,6 +30,7 @@ def main():
         container_width=container_width,
         padding=padding,
         enable_auto_size=True,
+        enable_vertical_flip=True,
         force_pow2=False
     )
 
