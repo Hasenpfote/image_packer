@@ -26,14 +26,16 @@ def main():
 
     input_filepaths = [filepath for filepath in glob.glob(workpath + '/*.png')]
     output_filepath = workpath + '/atlas.png'
-    container_width = 128
+    container_width = 100
     padding = (1, 1, 1, 1)
 
     packer.pack(
         input_filepaths=input_filepaths,
         output_filepath=output_filepath,
         container_width=container_width,
-        padding=padding
+        padding=padding,
+        enable_auto_size=True,
+        force_pow2=False
     )
 
 

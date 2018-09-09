@@ -5,7 +5,14 @@ from PIL import Image
 from . import blf
 
 
-def pack(input_filepaths, output_filepath, container_width, padding=None):
+def pack(
+    input_filepaths,
+    output_filepath,
+    container_width,
+    padding=None,
+    enable_auto_size=True,
+    force_pow2=False
+):
     '''make a atlas.
 
     Args:
@@ -13,6 +20,8 @@ def pack(input_filepaths, output_filepath, container_width, padding=None):
         output_filepath (str):
         container_width (int):
         padding (tuple):
+        enable_auto_size (bool): If true, the size will be adjusted automatically.
+        force_pow2 (bool): If true, the power-of-two rule is forced.
     '''
     if padding is None:
         padding = (0, 0, 0, 0)
@@ -28,7 +37,12 @@ def pack(input_filepaths, output_filepath, container_width, padding=None):
             uid_to_filepath[uid] = filepath
             pieces.append(blf.Piece(uid=uid, width=width, height=height))
 
-    container_width, container_height, rects = blf.solve(pieces, container_width)
+    container_width, container_height, rects = blf.solve(
+        pieces=pieces,
+        container_width=container_width,
+        enable_auto_size=enable_auto_size,
+        force_pow2=force_pow2
+    )
 
     blank_image = Image.new('RGBA', (container_width, container_height), 'black')
 

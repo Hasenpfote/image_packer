@@ -24,7 +24,9 @@ def main():
         input_filepaths=input_filepaths,
         output_filepath=output_filepath,
         container_width=container_width,
-        padding=padding
+        padding=padding,
+        enable_auto_size=True,
+        force_pow2=False
     )
 
 

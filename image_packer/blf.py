@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import math
 import sys
 
 
@@ -230,14 +231,36 @@ def run(pieces, container_width):
     return rects
 
 
-def calc_container_height(rects):
-    '''Calculate a container height from rectangles.'''
-    container_height = 0
-    for rect in rects:
-        if rect.top > container_height:
-            container_height = rect.top
+def next_power_of_2(x):
+    return 2.0 ** math.ceil(math.log2(x))
 
-    return container_height
+
+def calc_minimum_container_size(rects):
+    '''Calculate a minimum container size from rectangles.'''
+    width = 0
+    height = 0
+    for rect in rects:
+        if rect.right > width:
+            width = rect.right
+        if rect.top > height:
+            height = rect.top
+
+    return width, height
+
+
+def calc_container_size(container_width, rects, enable_auto_size, force_pow2):
+    '''Calculate a container size.'''
+    if enable_auto_size:
+        width, height = calc_minimum_container_size(rects)
+    else:
+        width = container_width
+        _, height = calc_minimum_container_size(rects)
+
+    if force_pow2:
+        width = int(next_power_of_2(width))
+        height = int(next_power_of_2(height))
+
+    return width, height
 
 
 def calc_filling_rate(container_width, container_height, rects):
@@ -246,46 +269,72 @@ def calc_filling_rate(container_width, container_height, rects):
     return area / (container_width * container_height)
 
 
-def solver1(pieces, container_width):
+def solver1(pieces, container_width, enable_auto_size, force_pow2):
     '''Inputs are sorted in descending order of height before execution.'''
     pieces.sort(key=lambda piece: -piece.height)
     rects = run(pieces, container_width)
-    container_height = calc_container_height(rects)
-    filling_rate = calc_filling_rate(container_width, container_height, rects)
+    width, height = calc_container_size(
+        container_width=container_width,
+        rects=rects,
+        enable_auto_size=enable_auto_size,
+        force_pow2=force_pow2
+    )
+    filling_rate = calc_filling_rate(width, height, rects)
 
-    return filling_rate, container_height, rects
+    return filling_rate, width, height, rects
 
 
-def solver2(pieces, container_width):
+def solver2(pieces, container_width, enable_auto_size, force_pow2):
     '''Inputs are sorted in descending order of area before execution.'''
     pieces.sort(key=lambda piece: -piece.area)
     rects = run(pieces, container_width)
-    container_height = calc_container_height(rects)
-    filling_rate = calc_filling_rate(container_width, container_height, rects)
+    width, height = calc_container_size(
+        container_width=container_width,
+        rects=rects,
+        enable_auto_size=enable_auto_size,
+        force_pow2=force_pow2
+    )
+    filling_rate = calc_filling_rate(width, height, rects)
 
-    return filling_rate, container_height, rects
+    return filling_rate, width, height, rects
 
 
-def solve(pieces, container_width):
+def solve(
+    pieces,
+    container_width,
+    enable_auto_size=True,
+    force_pow2=False
+):
     '''Obtain the highest filling rate result.
 
     Args:
         pieces (list(:class:`Piece`)):
         container_width (int):
+        enable_auto_size (bool): If true, the size will be adjusted automatically.
+        force_pow2 (bool): If true, the power-of-two rule is forced.
 
     Returns:
         tuple(container_width, container_height, rects)
     '''
-    max_width = max(pieces, key=lambda piece: piece.width).width
-    if container_width < max_width:
-        container_width = max_width
+    if enable_auto_size:
+        max_width = max(pieces, key=lambda piece: piece.width).width
+        if container_width < max_width:
+            container_width = max_width
+
+    if force_pow2:
+        container_width = int(next_power_of_2(container_width))
 
     best_filling_rate = -1.0
     result = (0, 0, None)
     for solver in (solver1, solver2):
-        filling_rate, container_height, rects = solver(pieces, container_width)
+        filling_rate, width, height, rects = solver(
+            pieces=pieces,
+            container_width=container_width,
+            enable_auto_size=enable_auto_size,
+            force_pow2=force_pow2
+        )
         if filling_rate > best_filling_rate:
             best_filling_rate = filling_rate
-            result = (container_width, container_height, rects)
+            result = (width, height, rects)
 
     return result
