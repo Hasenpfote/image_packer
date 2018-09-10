@@ -51,7 +51,13 @@ def make_random_image_files(
         w = random.randint(min_width, max_width)
         h = random.randint(min_height, max_height)
         image = Image.new(mode=mode, size=(w, h), color=color)
-        filename = '{:02x}{:02x}{:02x}_{}{}'.format(*color, mode.lower(), extension)
+        filename = '{r:02x}{g:02x}{b:02x}_{suffix}{extension}'.format(
+            r=color[0],
+            g=color[1],
+            b=color[2],
+            suffix=mode.lower(),
+            extension=extension
+        )
         image.save(fp=dirpath + '/' + filename, format=format_)
 
 
