@@ -185,7 +185,7 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (1, 1, 1, 1)
+            padding = (0, 0, 0, 0)
 
             packer.pack(
                 input_filepaths=input_filepaths,
@@ -233,7 +233,7 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (1, 1, 1, 1)
+            padding = (0, 0, 0, 0)
 
             packer.pack(
                 input_filepaths=input_filepaths,
