@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 import math
 import os
-import random
 import tempfile
-import uuid
 from PIL import Image
 from unittest import TestCase
 
@@ -12,6 +10,7 @@ import sys
 sys.path.append('../')
 from image_packer import packer
 from image_packer import blf
+from image_packer import tools
 
 
 class TestPacker(TestCase):
@@ -21,43 +20,11 @@ class TestPacker(TestCase):
         p = math.log2(x)
         return math.ceil(p) == math.floor(p)
 
-    @staticmethod
-    def make_png24_files(dirpath, max_width, max_height, n):
-        for _ in range(n):
-            w = random.randint(1, max_width)
-            h = random.randint(1, max_height)
-            image = Image.new(mode='RGB', size=(w, h), color=(255, 255, 255))
-            image.save(fp='{}/{}.png'.format(dirpath, uuid.uuid4()), format='PNG')
-
-    @staticmethod
-    def make_png32_files(dirpath, max_width, max_height, n):
-        for _ in range(n):
-            w = random.randint(1, max_width)
-            h = random.randint(1, max_height)
-            image = Image.new(mode='RGBA', size=(w, h), color=(255, 255, 255, 127))
-            image.save(fp='{}/{}.png'.format(dirpath, uuid.uuid4()), format='PNG')
-
-    @staticmethod
-    def make_bmp_files(dirpath, max_width, max_height, n):
-        for _ in range(n):
-            w = random.randint(1, max_width)
-            h = random.randint(1, max_height)
-            image = Image.new(mode='RGB', size=(w, h), color=(255, 255, 255))
-            image.save(fp='{}/{}.bmp'.format(dirpath, uuid.uuid4()), format='BMP')
-
-    @staticmethod
-    def make_jpg_files(dirpath, max_width, max_height, n):
-        for _ in range(n):
-            w = random.randint(1, max_width)
-            h = random.randint(1, max_height)
-            image = Image.new(mode='RGB', size=(w, h), color=(255, 255, 255))
-            image.save(fp='{}/{}.jpg'.format(dirpath, uuid.uuid4()), format='JPEG')
-
     def test_opaque_images(self):
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png24_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png24_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -74,9 +41,9 @@ class TestPacker(TestCase):
 
     def test_transparent_images(self):
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -93,9 +60,9 @@ class TestPacker(TestCase):
 
     def test_disable_auto_size(self):
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -113,9 +80,9 @@ class TestPacker(TestCase):
 
     def test_disable_vertical_flip(self):
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -133,9 +100,9 @@ class TestPacker(TestCase):
             self.assertTrue(os.path.exists(output_filepath))
 
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -154,9 +121,9 @@ class TestPacker(TestCase):
 
     def test_force_pow2(self):
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -178,9 +145,9 @@ class TestPacker(TestCase):
                 self.assertTrue(self.is_power_of_2(im.height))
 
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -202,9 +169,9 @@ class TestPacker(TestCase):
                 self.assertTrue(self.is_power_of_2(im.height))
 
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
@@ -226,9 +193,9 @@ class TestPacker(TestCase):
                 self.assertTrue(self.is_power_of_2(im.height))
 
         with tempfile.TemporaryDirectory() as workpath:
-            self.make_png32_files(dirpath=workpath, max_width=64, max_height=64, n=4)
-            self.make_bmp_files(dirpath=workpath, max_width=64, max_height=64, n=3)
-            self.make_jpg_files(dirpath=workpath, max_width=64, max_height=64, n=3)
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
