@@ -9,20 +9,14 @@ from PIL import Image
 import sys
 sys.path.append('../')
 from image_packer import packer
-
-
-def make_random_size_image(dirpath, min_size, max_size, n):
-    for index, _ in enumerate(range(n)):
-        w = random.randint(min_size, max_size)
-        h = random.randint(min_size, max_size)
-        image = Image.new('RGBA', (w, h), 'white')
-        image.save('{}/{}.png'.format(dirpath, index))
+from image_packer import tools
 
 
 def main():
 
     workpath = tempfile.mkdtemp(dir='.')
-    make_random_size_image(dirpath=workpath, min_size=1, max_size=64, n=10)
+
+    tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=10, dirpath=workpath)
 
     input_filepaths = [
         workpath + '/*.png',
