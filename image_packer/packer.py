@@ -69,9 +69,17 @@ def pack(
     )
 
     if has_alpha:
-        blank_image = Image.new('RGBA', (container_width, container_height), (0, 0, 0, 255))
+        blank_image = Image.new(
+            mode='RGBA',
+            size=(container_width, container_height),
+            color=(0, 0, 0, 255)
+        )
     else:
-        blank_image = Image.new('RGB', (container_width, container_height), (0, 0, 0))
+        blank_image = Image.new(
+            mode='RGB',
+            size=(container_width, container_height),
+            color=(0, 0, 0)
+        )
 
     for rect in rects:
         x = rect.x + padding[3]
@@ -81,9 +89,9 @@ def pack(
             y = (container_height - rect.top) + padding[0]
         filepath = uid_to_filepath.get(rect.uid)
         with Image.open(filepath) as im:
-            blank_image.paste(im, (x, y))
+            blank_image.paste(im=im, box=(x, y))
 
-    blank_image.save(output_filepath)
+    blank_image.save(fp=output_filepath, format='PNG')
 
 
 def main():
