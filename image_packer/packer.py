@@ -51,7 +51,7 @@ def pack(
 
     has_alpha = False
     for filepath in input_filepaths:
-        with Image.open(filepath) as im:
+        with Image.open(fp=filepath) as im:
             width = im.width + padding[1] + padding[3]
             height = im.height + padding[0] + padding[2]
             uid = uuid.uuid4()
