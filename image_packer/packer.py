@@ -4,19 +4,29 @@ import glob
 import os
 import sys
 import uuid
+import warnings
 from PIL import Image
 from . import blf
 
 
-def extract_filepaths(filepaths):
+ALLOWED_EXTENSIONS = {'.png', '.bmp', '.jpg'}
+
+
+def extract_filepaths(filepaths, allowed_extensions):
     results = set()
     for filepath in filepaths:
         filepath = os.path.normpath(filepath)
         if '*' in filepath:
             for filepath_ in glob.glob(filepath):
-                results.add(filepath_)
+                if os.path.splitext(filepath_)[1] in allowed_extensions:
+                    results.add(filepath_)
+                else:
+                    warnings.warn('The `{}` file has been ignored'.format(filepath_), stacklevel=2)
         else:
-            results.add(filepath)
+            if os.path.splitext(filepath)[1] in allowed_extensions:
+                results.add(filepath)
+            else:
+                warnings.warn('The `{}` file has been ignored'.format(filepath), stacklevel=2)
 
     return results
 
@@ -41,15 +51,23 @@ def pack(
         enable_vertical_flip (bool): If true, flips the output upside down.
         force_pow2 (bool): If true, the power-of-two rule is forced.
     '''
+    # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
+    Image.init()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('always')
+        input_filepaths = extract_filepaths(
+            filepaths=input_filepaths,
+            allowed_extensions={ext for ext in ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
+        )
+
     if padding is None:
         padding = (0, 0, 0, 0)
 
     uid_to_filepath = dict()
     pieces = list()
-
-    input_filepaths = extract_filepaths(input_filepaths)
-
     has_alpha = False
+
     for filepath in input_filepaths:
         with Image.open(fp=filepath) as im:
             width = im.width + padding[1] + padding[3]
