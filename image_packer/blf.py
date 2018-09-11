@@ -299,6 +299,21 @@ def solver2(pieces, container_width, enable_auto_size, force_pow2):
     return filling_rate, width, height, rects
 
 
+def solver3(pieces, container_width, enable_auto_size, force_pow2):
+    '''Inputs are sorted in descending order of height and width before execution.'''
+    pieces.sort(key=lambda piece: (-piece.height, -piece.width))
+    rects = run(pieces, container_width)
+    width, height = calc_container_size(
+        container_width=container_width,
+        rects=rects,
+        enable_auto_size=enable_auto_size,
+        force_pow2=force_pow2
+    )
+    filling_rate = calc_filling_rate(width, height, rects)
+
+    return filling_rate, width, height, rects
+
+
 def solve(
     pieces,
     container_width,
@@ -326,7 +341,7 @@ def solve(
 
     best_filling_rate = -1.0
     result = (0, 0, None)
-    for solver in (solver1, solver2):
+    for solver in (solver1, solver2, solver3):
         filling_rate, width, height, rects = solver(
             pieces=pieces,
             container_width=container_width,
