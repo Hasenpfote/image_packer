@@ -313,45 +313,45 @@ def calc_filling_rate(container_size, regions):
     return area / container_size.area
 
 
-def solver1(pieces, container_width, enable_auto_size, force_pow2):
+def solver1(pieces, container_width, options):
     '''Inputs are sorted in descending order of height before execution.'''
     pieces.sort(key=lambda piece: -piece.size.height)
     regions = run(pieces, container_width)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
-        enable_auto_size=enable_auto_size,
-        force_pow2=force_pow2
+        enable_auto_size=options['enable_auto_size'],
+        force_pow2=options['force_pow2']
     )
     filling_rate = calc_filling_rate(container_size, regions)
 
     return filling_rate, container_size, regions
 
 
-def solver2(pieces, container_width, enable_auto_size, force_pow2):
+def solver2(pieces, container_width, options):
     '''Inputs are sorted in descending order of area before execution.'''
     pieces.sort(key=lambda piece: -piece.size.area)
     regions = run(pieces, container_width)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
-        enable_auto_size=enable_auto_size,
-        force_pow2=force_pow2
+        enable_auto_size=options['enable_auto_size'],
+        force_pow2=options['force_pow2']
     )
     filling_rate = calc_filling_rate(container_size, regions)
 
     return filling_rate, container_size, regions
 
 
-def solver3(pieces, container_width, enable_auto_size, force_pow2):
+def solver3(pieces, container_width, options):
     '''Inputs are sorted in descending order of height and width before execution.'''
     pieces.sort(key=lambda piece: (-piece.size.height, -piece.size.width))
     regions = run(pieces, container_width)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
-        enable_auto_size=enable_auto_size,
-        force_pow2=force_pow2
+        enable_auto_size=options['enable_auto_size'],
+        force_pow2=options['force_pow2']
     )
     filling_rate = calc_filling_rate(container_size, regions)
 
@@ -361,26 +361,35 @@ def solver3(pieces, container_width, enable_auto_size, force_pow2):
 def solve(
     pieces,
     container_width,
-    enable_auto_size=True,
-    force_pow2=False
+    options=None
 ):
     '''Obtain the highest filling rate result.
 
     Args:
         pieces (list(:class:`Piece`)):
         container_width (int):
-        enable_auto_size (bool): If true, the size will be adjusted automatically.
-        force_pow2 (bool): If true, the power-of-two rule is forced.
+        options (dict):
 
     Returns:
         tuple(container_width, container_height, list(:class:`Region`))
     '''
-    if enable_auto_size:
+    default_options = {
+        # If true, the size will be adjusted automatically.
+        'enable_auto_size': True,
+        # If true, the power-of-two rule is forced.
+        'force_pow2': False
+    }
+    if options is None:
+        options = default_options
+    else:
+        options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
+
+    if options['enable_auto_size']:
         max_width = max(pieces, key=lambda piece: piece.size.width).size.width
         if container_width < max_width:
             container_width = max_width
 
-    if force_pow2:
+    if options['force_pow2']:
         container_width = int(next_power_of_2(container_width))
 
     best_filling_rate = -1.0
@@ -389,8 +398,7 @@ def solve(
         filling_rate, container_size, regions = solver(
             pieces=pieces,
             container_width=container_width,
-            enable_auto_size=enable_auto_size,
-            force_pow2=force_pow2
+            options=options
         )
         if filling_rate > best_filling_rate:
             best_filling_rate = filling_rate

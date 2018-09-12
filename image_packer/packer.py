@@ -35,10 +35,7 @@ def pack(
     input_filepaths,
     output_filepath,
     container_width,
-    padding=None,
-    enable_auto_size=True,
-    enable_vertical_flip=True,
-    force_pow2=False,
+    options=None
 ):
     '''make a atlas.
 
@@ -46,11 +43,22 @@ def pack(
         input_filepaths (list(str)):
         output_filepath (str):
         container_width (int):
-        padding (tuple):
-        enable_auto_size (bool): If true, the size will be adjusted automatically.
-        enable_vertical_flip (bool): If true, flips the output upside down.
-        force_pow2 (bool): If true, the power-of-two rule is forced.
+        options (dict):
     '''
+    default_options = {
+        'padding': (0, 0, 0, 0),
+        # If true, the size will be adjusted automatically.
+        'enable_auto_size': True,
+        # If true, flips the output upside down.
+        'enable_vertical_flip': True,
+        # If true, the power-of-two rule is forced.
+        'force_pow2': False
+    }
+    if options is None:
+        options = default_options
+    else:
+        options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
+
     # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
     Image.init()
 
@@ -61,12 +69,10 @@ def pack(
             allowed_extensions={ext for ext in ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
         )
 
-    if padding is None:
-        padding = (0, 0, 0, 0)
-
     uid_to_filepath = dict()
     pieces = list()
     has_alpha = False
+    padding = options['padding']
 
     for filepath in input_filepaths:
         with Image.open(fp=filepath) as im:
@@ -79,11 +85,15 @@ def pack(
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
 
+    blf_options = {
+        'enable_auto_size': options['enable_auto_size'],
+        'force_pow2': options['force_pow2']
+    }
+
     container_width, container_height, regions = blf.solve(
         pieces=pieces,
         container_width=container_width,
-        enable_auto_size=enable_auto_size,
-        force_pow2=force_pow2
+        options=blf_options
     )
 
     if has_alpha:
@@ -98,6 +108,8 @@ def pack(
             size=(container_width, container_height),
             color=(0, 0, 0)
         )
+
+    enable_vertical_flip = options['enable_vertical_flip']
 
     for region in regions:
         x = region.left + padding[3]
@@ -176,14 +188,18 @@ def main():
     args = parser.parse_args()
 
     try:
+        options = {
+            'padding': args.padding,
+            'enable_auto_size': not args.disable_auto_size,
+            'enable_vertical_flip': not args.disable_vertical_flip,
+            'force_pow2': args.force_pow2
+        }
+
         pack(
             input_filepaths=args.input,
             output_filepath=args.output,
             container_width=args.width,
-            padding=args.padding,
-            enable_auto_size=not args.disable_auto_size,
-            enable_vertical_flip=not args.disable_vertical_flip,
-            force_pow2=args.force_pow2
+            options=options
         )
         sys.exit(0)
     except Exception as e:

@@ -29,13 +29,16 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 128
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1)
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
 
@@ -48,13 +51,16 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 128
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1)
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
 
@@ -67,15 +73,18 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 1
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1),
+                'enable_auto_size': False
+            }
 
             with self.assertRaises(blf.LocationNotFoundError):
                 packer.pack(
                     input_filepaths=input_filepaths,
                     output_filepath=output_filepath,
                     container_width=container_width,
-                    padding=padding,
-                    enable_auto_size=False
+                    options=options,
                 )
 
     def test_disable_vertical_flip(self):
@@ -87,15 +96,18 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 128
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1),
+                'enable_auto_size': True,
+                'enable_vertical_flip': False
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=True,
-                enable_vertical_flip=False,
+                options=options,
             )
             self.assertTrue(os.path.exists(output_filepath))
 
@@ -107,15 +119,17 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 128
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1),
+                'enable_auto_size': False,
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=False,
-                enable_vertical_flip=False,
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
 
@@ -128,16 +142,19 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1),
+                'enable_auto_size': True,
+                'enable_vertical_flip': True,
+                'force_pow2': True
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=True,
-                enable_vertical_flip=True,
-                force_pow2=True
+                options=options,
             )
             self.assertTrue(os.path.exists(output_filepath))
             with Image.open(fp=output_filepath) as im:
@@ -152,16 +169,19 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (0, 0, 0, 0)
+
+            options = {
+                'padding': (0, 0, 0, 0),
+                'enable_auto_size': False,
+                'enable_vertical_flip': True,
+                'force_pow2': True
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=False,
-                enable_vertical_flip=True,
-                force_pow2=True
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
             with Image.open(fp=output_filepath) as im:
@@ -176,16 +196,19 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (1, 1, 1, 1)
+
+            options = {
+                'padding': (1, 1, 1, 1),
+                'enable_auto_size': True,
+                'enable_vertical_flip': False,
+                'force_pow2': True
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=True,
-                enable_vertical_flip=False,
-                force_pow2=True
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
             with Image.open(fp=output_filepath) as im:
@@ -200,16 +223,19 @@ class TestPacker(TestCase):
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
             container_width = 60
-            padding = (0, 0, 0, 0)
+
+            options = {
+                'padding': (0, 0, 0, 0),
+                'enable_auto_size': False,
+                'enable_vertical_flip': False,
+                'force_pow2': True
+            }
 
             packer.pack(
                 input_filepaths=input_filepaths,
                 output_filepath=output_filepath,
                 container_width=container_width,
-                padding=padding,
-                enable_auto_size=False,
-                enable_vertical_flip=False,
-                force_pow2=True
+                options=options
             )
             self.assertTrue(os.path.exists(output_filepath))
             with Image.open(fp=output_filepath) as im:
