@@ -13,13 +13,10 @@ About
 | - Supported image input formats: - png, bmp, jpg - Supported image
   output formats: - png(24 or 32bits)
 
-.. raw:: html
+.. figure:: https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png
+   :alt: atlas
 
-   <p align="center">
-
-.. raw:: html
-
-   </p>
+   atlas
 
 Compatibility
 -------------

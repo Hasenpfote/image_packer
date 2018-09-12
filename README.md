@@ -13,7 +13,7 @@ Pack multiple images of different sizes or formats into one image.
 - Supported image output formats:
   - png(24 or 32bits)
 
-<p align="center"><img src="https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png"></p>
+![atlas](https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png)
 
 ## Compatibility
 image_packer works with Python 3.4 or higher.  
