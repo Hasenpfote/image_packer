@@ -74,7 +74,7 @@ def pack(
             height = im.height + padding[0] + padding[2]
             uid = uuid.uuid4()
             uid_to_filepath[uid] = filepath
-            pieces.append(blf.Piece(uid=uid, width=width, height=height))
+            pieces.append(blf.Piece(uid=uid, size=blf.Size(width, height)))
 
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
@@ -100,7 +100,7 @@ def pack(
         )
 
     for rect in rects:
-        x = rect.x + padding[3]
+        x = rect.left + padding[3]
         if enable_vertical_flip:
             y = rect.bottom + padding[0]
         else:
