@@ -54,16 +54,19 @@ Usage
    ]
    output_filepath = workpath + '/atlas.png'
    container_width = 128
-   padding = (1, 1, 1, 1)
+
+   options = {
+       'padding': (1, 1, 1, 1),
+       'enable_auto_size': True,
+       'enable_vertical_flip': True,
+       'force_pow2': False
+   }
 
    packer.pack(
        input_filepaths=input_filepaths,
        output_filepath=output_filepath,
        container_width=container_width,
-       padding=padding,
-       enable_auto_size=True,
-       enable_vertical_flip=True,
-       force_pow2=False
+       options=options
    )
 
 Command-line Tool

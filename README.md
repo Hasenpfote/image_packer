@@ -13,9 +13,7 @@ Pack multiple images of different sizes or formats into one image.
 - Supported image output formats:
   - png(24 or 32bits)
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png">
-</p>
+<p align="center"><img src="https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png"></p>
 
 ## Compatibility
 image_packer works with Python 3.4 or higher.  
@@ -41,16 +39,19 @@ input_filepaths = [
 ]
 output_filepath = workpath + '/atlas.png'
 container_width = 128
-padding = (1, 1, 1, 1)
+
+options = {
+    'padding': (1, 1, 1, 1),
+    'enable_auto_size': True,
+    'enable_vertical_flip': True,
+    'force_pow2': False
+}
 
 packer.pack(
     input_filepaths=input_filepaths,
     output_filepath=output_filepath,
     container_width=container_width,
-    padding=padding,
-    enable_auto_size=True,
-    enable_vertical_flip=True,
-    force_pow2=False
+    options=options
 )
 ```
 
