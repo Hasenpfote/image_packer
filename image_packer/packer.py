@@ -79,7 +79,7 @@ def pack(
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
 
-    container_width, container_height, rects = blf.solve(
+    container_width, container_height, regions = blf.solve(
         pieces=pieces,
         container_width=container_width,
         enable_auto_size=enable_auto_size,
@@ -99,13 +99,13 @@ def pack(
             color=(0, 0, 0)
         )
 
-    for rect in rects:
-        x = rect.left + padding[3]
+    for region in regions:
+        x = region.left + padding[3]
         if enable_vertical_flip:
-            y = rect.bottom + padding[0]
+            y = region.bottom + padding[0]
         else:
-            y = (container_height - rect.top) + padding[0]
-        filepath = uid_to_filepath.get(rect.uid)
+            y = (container_height - region.top) + padding[0]
+        filepath = uid_to_filepath.get(region.uid)
         with Image.open(filepath) as im:
             blank_image.paste(im=im, box=(x, y))
 
