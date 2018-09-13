@@ -46,7 +46,8 @@ def pack(
         options (dict):
     '''
     default_options = {
-        'padding': (0, 0, 0, 0),
+        'margin': (0, 0, 0, 0),
+        'collapse_margin': False,
         # If true, the size will be adjusted automatically.
         'enable_auto_size': True,
         # If true, flips the output upside down.
@@ -72,12 +73,11 @@ def pack(
     uid_to_filepath = dict()
     pieces = list()
     has_alpha = False
-    padding = options['padding']
 
     for filepath in input_filepaths:
         with Image.open(fp=filepath) as im:
-            width = im.width + padding[1] + padding[3]
-            height = im.height + padding[0] + padding[2]
+            width = im.width
+            height = im.height
             uid = uuid.uuid4()
             uid_to_filepath[uid] = filepath
             pieces.append(blf.Piece(uid=uid, size=blf.Size(width, height)))
@@ -85,7 +85,12 @@ def pack(
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
 
+    margin_ = options['margin']
+    margin = blf.Thickness(top=margin_[0], right=margin_[1], bottom=margin_[2], left=margin_[3])
+
     blf_options = {
+        'margin': margin,
+        'collapse_margin': options['collapse_margin'],
         'enable_auto_size': options['enable_auto_size'],
         'force_pow2': options['force_pow2']
     }
@@ -112,11 +117,11 @@ def pack(
     enable_vertical_flip = options['enable_vertical_flip']
 
     for region in regions:
-        x = region.left + padding[3]
+        x = region.left + margin.left
         if enable_vertical_flip:
-            y = region.bottom + padding[0]
+            y = region.bottom + margin.top
         else:
-            y = (container_height - region.top) + padding[0]
+            y = (container_height - region.top) + margin.top
         filepath = uid_to_filepath.get(region.uid)
         with Image.open(filepath) as im:
             blank_image.paste(im=im, box=(x, y))
@@ -157,14 +162,20 @@ def main():
     )
 
     parser.add_argument(
-        '-p',
-        '--padding',
+        '-m',
+        '--margin',
         type=int,
         nargs=4,
         default=(0, 0, 0, 0),
         metavar=('top', 'right', 'bottom', 'left'),
         action='store',
-        help='Setting the padding for each side of an image.'
+        help='Setting the margin for each side of an image.'
+    )
+
+    parser.add_argument(
+        '--collapse-margin',
+        action='store_true',
+        help='This specifies if the margin between images are collapsed into each other.'
     )
 
     parser.add_argument(
@@ -189,7 +200,8 @@ def main():
 
     try:
         options = {
-            'padding': args.padding,
+            'margin': args.margin,
+            'collapse_margin': args.collapse_margin,
             'enable_auto_size': not args.disable_auto_size,
             'enable_vertical_flip': not args.disable_vertical_flip,
             'force_pow2': args.force_pow2

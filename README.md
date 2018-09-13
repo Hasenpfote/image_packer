@@ -41,7 +41,8 @@ output_filepath = workpath + '/atlas.png'
 container_width = 128
 
 options = {
-    'padding': (1, 1, 1, 1),
+    'margin': (1, 1, 1, 1),
+    'collapse_margin': False,
     'enable_auto_size': True,
     'enable_vertical_flip': True,
     'force_pow2': False
@@ -57,7 +58,7 @@ packer.pack(
 
 ## Command-line Tool  
 ```
-$ impack -i "./image/*.png" -i "./image/*.jpg" -i "./image/*.bmp" -o "./image/atlas.png" -w 128 -p 1 1 1 1
+$ impack -i "./image/*.png" -i "./image/*.jpg" -i "./image/*.bmp" -o "./image/atlas.png" -w 128 -m 1 1 1 1
 ```
 
 ## License

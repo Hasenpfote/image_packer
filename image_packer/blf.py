@@ -4,7 +4,7 @@ import math
 import sys
 
 
-__all__ = ['Size', 'Piece', 'Region', 'solve', 'LocationNotFoundError']
+__all__ = ['Size', 'Thickness', 'Piece', 'Region', 'solve', 'LocationNotFoundError']
 
 
 class Size(object):
@@ -24,6 +24,31 @@ class Size(object):
     @property
     def area(self):
         return self._width * self._height
+
+
+class Thickness(object):
+    '''This class represents the thickness of a frame around a rectangle.'''
+    def __init__(self, top, right, bottom, left):
+        self._top = top
+        self._right = right
+        self._bottom = bottom
+        self._left = left
+
+    @property
+    def top(self):
+        return self._top
+
+    @property
+    def right(self):
+        return self._right
+
+    @property
+    def bottom(self):
+        return self._bottom
+
+    @property
+    def left(self):
+        return self._left
 
 
 class Piece(object):
@@ -235,22 +260,42 @@ def generate_stable_points(current_region, other_regions):
     return stable_points
 
 
-def run(pieces, container_width):
+def blf(pieces, container_width, options=None):
     '''Run all iterations.
 
     Args:
         pieces (list(:class:`Piece`)):
         container_width (int):
+        options (dict):
 
     Returns:
-        list(:class:`Region`)
+        container_width, list(:class:`Region`)
     '''
+    if options is None:
+        options = dict()
+
+    margin = options.get('margin', Thickness(0, 0, 0, 0))
+    collapse_margin = options.get('collapse_margin', False)
+
+    if options.get('enable_auto_size', True):
+        max_width = max(pieces, key=lambda piece: piece.size.width).size.width
+        max_width += margin.left + margin.right
+        if container_width < max_width:
+            container_width = max_width
+
+    if options.get('force_pow2', False):
+        container_width = int(next_power_of_2(container_width))
+
     regions = list()
     stable_points = list()
     stable_points.append(StablePoint())
 
     for piece in pieces:
-        current_size = piece.size
+        current_size = Size(
+            width=piece.size.width + margin.left + margin.right,
+            height=piece.size.height + margin.top + margin.bottom
+        )
+
         index = find_point_index(
             stable_points=stable_points,
             current_size=current_size,
@@ -273,7 +318,7 @@ def run(pieces, container_width):
         stable_points.extend(new_stable_points)
         regions.append(new_region)
 
-    return regions
+    return container_width, regions
 
 
 def next_power_of_2(x):
@@ -316,7 +361,7 @@ def calc_filling_rate(container_size, regions):
 def solver1(pieces, container_width, options):
     '''Inputs are sorted in descending order of height before execution.'''
     pieces.sort(key=lambda piece: -piece.size.height)
-    regions = run(pieces, container_width)
+    container_width, regions = blf(pieces, container_width, options)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
@@ -331,7 +376,7 @@ def solver1(pieces, container_width, options):
 def solver2(pieces, container_width, options):
     '''Inputs are sorted in descending order of area before execution.'''
     pieces.sort(key=lambda piece: -piece.size.area)
-    regions = run(pieces, container_width)
+    container_width, regions = blf(pieces, container_width, options)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
@@ -346,7 +391,7 @@ def solver2(pieces, container_width, options):
 def solver3(pieces, container_width, options):
     '''Inputs are sorted in descending order of height and width before execution.'''
     pieces.sort(key=lambda piece: (-piece.size.height, -piece.size.width))
-    regions = run(pieces, container_width)
+    container_width, regions = blf(pieces, container_width, options)
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
@@ -371,26 +416,21 @@ def solve(
         options (dict):
 
     Returns:
-        tuple(container_width, container_height, list(:class:`Region`))
+        container_width, container_height, list(:class:`Region`)
     '''
     default_options = {
+        'margin': Thickness(0, 0, 0, 0),
+        'collapse_margin': False,
         # If true, the size will be adjusted automatically.
         'enable_auto_size': True,
         # If true, the power-of-two rule is forced.
         'force_pow2': False
     }
+
     if options is None:
         options = default_options
     else:
         options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
-
-    if options['enable_auto_size']:
-        max_width = max(pieces, key=lambda piece: piece.size.width).size.width
-        if container_width < max_width:
-            container_width = max_width
-
-    if options['force_pow2']:
-        container_width = int(next_power_of_2(container_width))
 
     best_filling_rate = -1.0
     result = (0, 0, None)

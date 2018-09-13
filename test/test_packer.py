@@ -31,7 +31,7 @@ class TestPacker(TestCase):
             container_width = 128
 
             options = {
-                'padding': (1, 1, 1, 1)
+                'margin': (1, 1, 1, 1)
             }
 
             packer.pack(
@@ -53,7 +53,7 @@ class TestPacker(TestCase):
             container_width = 128
 
             options = {
-                'padding': (1, 1, 1, 1)
+                'margin': (1, 1, 1, 1)
             }
 
             packer.pack(
@@ -75,7 +75,7 @@ class TestPacker(TestCase):
             container_width = 1
 
             options = {
-                'padding': (1, 1, 1, 1),
+                'margin': (1, 1, 1, 1),
                 'enable_auto_size': False
             }
 
@@ -98,7 +98,7 @@ class TestPacker(TestCase):
             container_width = 128
 
             options = {
-                'padding': (1, 1, 1, 1),
+                'margin': (1, 1, 1, 1),
                 'enable_auto_size': True,
                 'enable_vertical_flip': False
             }
@@ -121,7 +121,7 @@ class TestPacker(TestCase):
             container_width = 128
 
             options = {
-                'padding': (1, 1, 1, 1),
+                'margin': (1, 1, 1, 1),
                 'enable_auto_size': False,
             }
 
@@ -144,7 +144,7 @@ class TestPacker(TestCase):
             container_width = 60
 
             options = {
-                'padding': (1, 1, 1, 1),
+                'margin': (1, 1, 1, 1),
                 'enable_auto_size': True,
                 'enable_vertical_flip': True,
                 'force_pow2': True
@@ -171,7 +171,7 @@ class TestPacker(TestCase):
             container_width = 60
 
             options = {
-                'padding': (0, 0, 0, 0),
+                'margin': (0, 0, 0, 0),
                 'enable_auto_size': False,
                 'enable_vertical_flip': True,
                 'force_pow2': True
@@ -198,7 +198,7 @@ class TestPacker(TestCase):
             container_width = 60
 
             options = {
-                'padding': (1, 1, 1, 1),
+                'margin': (1, 1, 1, 1),
                 'enable_auto_size': True,
                 'enable_vertical_flip': False,
                 'force_pow2': True
@@ -225,7 +225,7 @@ class TestPacker(TestCase):
             container_width = 60
 
             options = {
-                'padding': (0, 0, 0, 0),
+                'margin': (0, 0, 0, 0),
                 'enable_auto_size': False,
                 'enable_vertical_flip': False,
                 'force_pow2': True

@@ -21,7 +21,8 @@ def main():
     container_width = 100
 
     options = {
-        'padding': (1, 1, 1, 1),
+        'margin': (1, 1, 1, 1),
+        'collapse_margin': False,
         'enable_auto_size': True,
         'enable_vertical_flip': True,
         'force_pow2': False
