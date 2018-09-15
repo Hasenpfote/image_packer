@@ -142,7 +142,12 @@ class LocationNotFoundError(Exception):
     pass
 
 
-def is_colliding(stable_point, current_size, other_regions):
+def is_colliding(
+    stable_point,
+    current_size,
+    other_regions,
+    margin
+):
     '''Whether the rectangle on the stable point is in collide with another rectangles.
 
     Args:
@@ -153,14 +158,17 @@ def is_colliding(stable_point, current_size, other_regions):
     Returns:
         True if colliding, False otherwise.
     '''
+    h_spacing = margin.left + margin.right
+    v_spacing = margin.bottom + margin.top
+
     for other_region in other_regions:
-        if stable_point.x >= other_region.right:
+        if (stable_point.x - h_spacing) >= other_region.right:
             continue
-        if (stable_point.x + current_size.width) <= other_region.left:
+        if (stable_point.x + current_size.width + h_spacing) <= other_region.left:
             continue
-        if stable_point.y >= other_region.top:
+        if (stable_point.y - v_spacing) >= other_region.top:
             continue
-        if (stable_point.y + current_size.height) <= other_region.bottom:
+        if (stable_point.y + current_size.height + v_spacing) <= other_region.bottom:
             continue
 
         return True
@@ -172,20 +180,31 @@ def find_point_index(
     stable_points,
     current_size,
     other_regions,
-    container_width
+    container_width,
+    margin
 ):
     '''Find a BL point index.'''
+    h_spacing = margin.left + margin.right
+    v_spacing = margin.bottom + margin.top
+
     min_x, min_y = sys.maxsize, sys.maxsize
     last_used_id = None
 
     for i, point in enumerate(stable_points):
-        if (current_size.width <= point.gap_width) or (current_size.height <= point.gap_height):
+        if (current_size.width + h_spacing <= point.gap_width) \
+                or (current_size.height + v_spacing <= point.gap_height):
             continue
 
-        if (point.x < 0) or (point.y < 0) or (point.x + current_size.width > container_width):
+        if (point.x < 0) or (point.y < 0) \
+                or (point.x + current_size.width + margin.right > container_width):
             continue
 
-        if is_colliding(stable_point=point, current_size=current_size, other_regions=other_regions):
+        if is_colliding(
+                stable_point=point,
+                current_size=current_size,
+                other_regions=other_regions,
+                margin=margin
+        ):
             continue
 
         # Update the location.
@@ -200,61 +219,82 @@ def find_point_index(
     return last_used_id
 
 
-def generate_stable_points(current_region, other_regions):
+def generate_stable_points(
+    current_region,
+    other_regions,
+    margin
+):
     '''Generate stable points.'''
+    h_spacing = margin.left + margin.right
+    v_spacing = margin.bottom + margin.top
+
     stable_points = list()
 
     # Add a candidate for BL stable point.
     # This newly occurred by the current rectangle and the container.
     stable_points.append(
-        StablePoint(x=current_region.right, y=0, gap_width=0, gap_height=current_region.bottom)
+        StablePoint(
+            x=current_region.right + h_spacing,
+            y=0 + margin.bottom,
+            gap_width=0,
+            gap_height=current_region.bottom - margin.bottom
+        )
     )
     stable_points.append(
-        StablePoint(x=0, y=current_region.top, gap_width=current_region.left, gap_height=0)
+        StablePoint(
+            x=0 + margin.left,
+            y=current_region.top + v_spacing,
+            gap_width=current_region.left - margin.left,
+            gap_height=0
+        )
     )
 
     # Add a candidate for BL stable point.
     # This newly occurred by the current rectangle and other rectangles.
     for other_region in other_regions:
         # When the current rectangle is to the left side of the other rectangle.
-        if (current_region.right <= other_region.left) and (current_region.top > other_region.top):
-            x = current_region.right
-            y = other_region.top
-            w = other_region.left - current_region.right
-            if current_region.bottom > other_region.top:
-                h = current_region.bottom - other_region.top
+        if ((current_region.right + h_spacing) <= other_region.left) \
+                and (current_region.top > other_region.top):
+            x = current_region.right + h_spacing
+            y = other_region.top + v_spacing
+            w = other_region.left - current_region.right - h_spacing
+            if (current_region.bottom - v_spacing) > other_region.top:
+                h = current_region.bottom - other_region.top - v_spacing
             else:
                 h = 0
             stable_points.append(StablePoint(x=x, y=y, gap_width=w, gap_height=h))
         # When the current rectangle is to the right side of the other rectangle.
-        if (current_region.left >= other_region.right) and (current_region.top < other_region.top):
-            x = other_region.right
-            y = current_region.top
-            w = current_region.left - other_region.right
-            if other_region.bottom > current_region.top:
-                h = other_region.bottom - current_region.top
+        if ((current_region.left - h_spacing) >= other_region.right) \
+                and (current_region.top < other_region.top):
+            x = other_region.right + h_spacing
+            y = current_region.top + v_spacing
+            w = current_region.left - other_region.right - h_spacing
+            if other_region.bottom > (current_region.top + v_spacing):
+                h = other_region.bottom - current_region.top - v_spacing
             else:
                 h = 0
             stable_points.append(StablePoint(x=x, y=y, gap_width=w, gap_height=h))
         # When the current rectangle is to the lower side of the other rectangle.
-        if (current_region.top <= other_region.bottom) and (current_region.right > other_region.right):
-            x = other_region.right
-            y = current_region.top
-            if current_region.left > other_region.right:
-                w = current_region.left - other_region.right
+        if ((current_region.top + v_spacing) <= other_region.bottom) \
+                and (current_region.right > other_region.right):
+            x = other_region.right + h_spacing
+            y = current_region.top + v_spacing
+            if (current_region.left - h_spacing) > other_region.right:
+                w = current_region.left - other_region.right - h_spacing
             else:
                 w = 0
-            h = other_region.bottom - current_region.top
+            h = other_region.bottom - current_region.top - v_spacing
             stable_points.append(StablePoint(x=x, y=y, gap_width=w, gap_height=h))
         # When the current rectangle is to the upper side of the other rectangle.
-        if (current_region.bottom >= other_region.top) and (current_region.right < other_region.right):
-            x = current_region.right
-            y = other_region.top
-            if other_region.left > current_region.right:
-                w = other_region.left - current_region.right
+        if ((current_region.bottom - v_spacing) >= other_region.top) \
+                and (current_region.right < other_region.right):
+            x = current_region.right + h_spacing
+            y = other_region.top + v_spacing
+            if other_region.left > (current_region.right + h_spacing):
+                w = other_region.left - current_region.right - h_spacing
             else:
                 w = 0
-            h = current_region.bottom - other_region.top
+            h = current_region.bottom - other_region.top - v_spacing
             stable_points.append(StablePoint(x=x, y=y, gap_width=w, gap_height=h))
 
     return stable_points
@@ -288,19 +328,22 @@ def blf(pieces, container_width, options=None):
 
     regions = list()
     stable_points = list()
-    stable_points.append(StablePoint())
+    stable_points.append(
+        StablePoint(
+            x=margin.left,
+            y=margin.bottom,
+            gap_width=0,
+            gap_height=0
+        )
+    )
 
     for piece in pieces:
-        current_size = Size(
-            width=piece.size.width + margin.left + margin.right,
-            height=piece.size.height + margin.top + margin.bottom
-        )
-
         index = find_point_index(
             stable_points=stable_points,
-            current_size=current_size,
+            current_size=piece.size,
             other_regions=regions,
-            container_width=container_width
+            container_width=container_width,
+            margin=margin
         )
         point = stable_points.pop(index)
 
@@ -308,12 +351,13 @@ def blf(pieces, container_width, options=None):
             uid=piece.uid,
             x=point.x,
             y=point.y,
-            width=current_size.width,
-            height=current_size.height
+            width=piece.size.width,
+            height=piece.size.height
         )
         new_stable_points = generate_stable_points(
             current_region=new_region,
-            other_regions=regions
+            other_regions=regions,
+            margin=margin
         )
         stable_points.extend(new_stable_points)
         regions.append(new_region)
@@ -325,7 +369,7 @@ def next_power_of_2(x):
     return 2.0 ** math.ceil(math.log2(x))
 
 
-def calc_minimum_container_size(regions):
+def calc_minimum_container_size(regions, margin):
     '''Calculate a minimum container size from rectangles.'''
     max_width, max_height = 0, 0
     for region in regions:
@@ -334,12 +378,12 @@ def calc_minimum_container_size(regions):
         if region.top > max_height:
             max_height = region.top
 
-    return Size(max_width, max_height)
+    return Size(max_width + margin.right, max_height + margin.top)
 
 
-def calc_container_size(container_width, regions, enable_auto_size, force_pow2):
+def calc_container_size(container_width, regions, margin, enable_auto_size, force_pow2):
     '''Calculate a container size.'''
-    size = calc_minimum_container_size(regions)
+    size = calc_minimum_container_size(regions, margin)
     if enable_auto_size:
         width, height = size.width, size.height
     else:
@@ -365,6 +409,7 @@ def solver1(pieces, container_width, options):
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
+        margin=options['margin'],
         enable_auto_size=options['enable_auto_size'],
         force_pow2=options['force_pow2']
     )
@@ -380,6 +425,7 @@ def solver2(pieces, container_width, options):
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
+        margin=options['margin'],
         enable_auto_size=options['enable_auto_size'],
         force_pow2=options['force_pow2']
     )
@@ -395,6 +441,7 @@ def solver3(pieces, container_width, options):
     container_size = calc_container_size(
         container_width=container_width,
         regions=regions,
+        margin=options['margin'],
         enable_auto_size=options['enable_auto_size'],
         force_pow2=options['force_pow2']
     )

@@ -85,8 +85,13 @@ def pack(
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
 
+    enable_vertical_flip = options['enable_vertical_flip']
+
     margin_ = options['margin']
-    margin = blf.Thickness(top=margin_[0], right=margin_[1], bottom=margin_[2], left=margin_[3])
+    if enable_vertical_flip:
+        margin = blf.Thickness(top=margin_[2], right=margin_[1], bottom=margin_[0], left=margin_[3])
+    else:
+        margin = blf.Thickness(top=margin_[0], right=margin_[1], bottom=margin_[2], left=margin_[3])
 
     blf_options = {
         'margin': margin,
@@ -114,14 +119,12 @@ def pack(
             color=(0, 0, 0)
         )
 
-    enable_vertical_flip = options['enable_vertical_flip']
-
     for region in regions:
-        x = region.left + margin.left
+        x = region.left
         if enable_vertical_flip:
-            y = region.bottom + margin.top
+            y = region.bottom
         else:
-            y = (container_height - region.top) + margin.top
+            y = container_height - region.top
         filepath = uid_to_filepath.get(region.uid)
         with Image.open(filepath) as im:
             blank_image.paste(im=im, box=(x, y))
