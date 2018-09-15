@@ -4,7 +4,15 @@ import math
 import sys
 
 
-__all__ = ['Size', 'Thickness', 'Piece', 'Region', 'solve', 'LocationNotFoundError']
+__all__ = [
+    'Size',
+    'Thickness',
+    'Piece',
+    'Region',
+    'next_power_of_2',
+    'blf',
+    'LocationNotFoundError'
+]
 
 
 class Size(object):
@@ -140,6 +148,10 @@ class Region(object):
 class LocationNotFoundError(Exception):
     '''Raised when a location is not found.'''
     pass
+
+
+def next_power_of_2(x):
+    return 2.0 ** math.ceil(math.log2(x))
 
 
 def is_colliding(
@@ -363,132 +375,3 @@ def blf(pieces, container_width, options=None):
         regions.append(new_region)
 
     return container_width, regions
-
-
-def next_power_of_2(x):
-    return 2.0 ** math.ceil(math.log2(x))
-
-
-def calc_minimum_container_size(regions, margin):
-    '''Calculate a minimum container size from rectangles.'''
-    max_width, max_height = 0, 0
-    for region in regions:
-        if region.right > max_width:
-            max_width = region.right
-        if region.top > max_height:
-            max_height = region.top
-
-    return Size(max_width + margin.right, max_height + margin.top)
-
-
-def calc_container_size(container_width, regions, margin, enable_auto_size, force_pow2):
-    '''Calculate a container size.'''
-    size = calc_minimum_container_size(regions, margin)
-    if enable_auto_size:
-        width, height = size.width, size.height
-    else:
-        width, height = container_width, size.height
-
-    if force_pow2:
-        width = int(next_power_of_2(width))
-        height = int(next_power_of_2(height))
-
-    return Size(width, height)
-
-
-def calc_filling_rate(container_size, regions):
-    '''Calculate a filling rate.'''
-    area = sum(region.area for region in regions)
-    return area / container_size.area
-
-
-def solver1(pieces, container_width, options):
-    '''Inputs are sorted in descending order of height before execution.'''
-    pieces.sort(key=lambda piece: -piece.size.height)
-    container_width, regions = blf(pieces, container_width, options)
-    container_size = calc_container_size(
-        container_width=container_width,
-        regions=regions,
-        margin=options['margin'],
-        enable_auto_size=options['enable_auto_size'],
-        force_pow2=options['force_pow2']
-    )
-    filling_rate = calc_filling_rate(container_size, regions)
-
-    return filling_rate, container_size, regions
-
-
-def solver2(pieces, container_width, options):
-    '''Inputs are sorted in descending order of area before execution.'''
-    pieces.sort(key=lambda piece: -piece.size.area)
-    container_width, regions = blf(pieces, container_width, options)
-    container_size = calc_container_size(
-        container_width=container_width,
-        regions=regions,
-        margin=options['margin'],
-        enable_auto_size=options['enable_auto_size'],
-        force_pow2=options['force_pow2']
-    )
-    filling_rate = calc_filling_rate(container_size, regions)
-
-    return filling_rate, container_size, regions
-
-
-def solver3(pieces, container_width, options):
-    '''Inputs are sorted in descending order of height and width before execution.'''
-    pieces.sort(key=lambda piece: (-piece.size.height, -piece.size.width))
-    container_width, regions = blf(pieces, container_width, options)
-    container_size = calc_container_size(
-        container_width=container_width,
-        regions=regions,
-        margin=options['margin'],
-        enable_auto_size=options['enable_auto_size'],
-        force_pow2=options['force_pow2']
-    )
-    filling_rate = calc_filling_rate(container_size, regions)
-
-    return filling_rate, container_size, regions
-
-
-def solve(
-    pieces,
-    container_width,
-    options=None
-):
-    '''Obtain the highest filling rate result.
-
-    Args:
-        pieces (list(:class:`Piece`)):
-        container_width (int):
-        options (dict):
-
-    Returns:
-        container_width, container_height, list(:class:`Region`)
-    '''
-    default_options = {
-        'margin': Thickness(0, 0, 0, 0),
-        'collapse_margin': False,
-        # If true, the size will be adjusted automatically.
-        'enable_auto_size': True,
-        # If true, the power-of-two rule is forced.
-        'force_pow2': False
-    }
-
-    if options is None:
-        options = default_options
-    else:
-        options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
-
-    best_filling_rate = -1.0
-    result = (0, 0, None)
-    for solver in (solver1, solver2, solver3):
-        filling_rate, container_size, regions = solver(
-            pieces=pieces,
-            container_width=container_width,
-            options=options
-        )
-        if filling_rate > best_filling_rate:
-            best_filling_rate = filling_rate
-            result = (container_size.width, container_size.height, regions)
-
-    return result

@@ -7,6 +7,7 @@ import uuid
 import warnings
 from PIL import Image
 from . import blf
+from . import blf_solver
 
 
 ALLOWED_EXTENSIONS = {'.png', '.bmp', '.jpg'}
@@ -100,7 +101,7 @@ def pack(
         'force_pow2': options['force_pow2']
     }
 
-    container_width, container_height, regions = blf.solve(
+    container_width, container_height, regions = blf_solver.solve(
         pieces=pieces,
         container_width=container_width,
         options=blf_options
