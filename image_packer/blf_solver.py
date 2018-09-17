@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
+from concurrent import futures
 from . import blf
 
 
@@ -116,16 +118,37 @@ def solve(
     else:
         options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
 
+    solvers = (solver1, solver2, solver3)
     best_filling_rate = -1.0
     result = (0, 0, None)
-    for solver in (solver1, solver2, solver3):
-        filling_rate, container_size, regions = solver(
-            pieces=pieces,
-            container_width=container_width,
-            options=options
-        )
-        if filling_rate > best_filling_rate:
-            best_filling_rate = filling_rate
-            result = (container_size.width, container_size.height, regions)
+
+    if len(pieces) < 100:
+        for solver in solvers:
+            filling_rate, container_size, regions = solver(
+                pieces=pieces,
+                container_width=container_width,
+                options=options
+            )
+            if filling_rate > best_filling_rate:
+                best_filling_rate = filling_rate
+                result = (container_size.width, container_size.height, regions)
+    else:
+        max_workers = min(os.cpu_count(), len(solvers))
+        with futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures_ = list()
+            for solver in solvers:
+                futures_.append(
+                    executor.submit(
+                        solver,
+                        pieces=pieces,
+                        container_width=container_width,
+                        options=options
+                    )
+                )
+            for future in futures.as_completed(futures_):
+                filling_rate, container_size, regions = future.result()
+                if filling_rate > best_filling_rate:
+                    best_filling_rate = filling_rate
+                    result = (container_size.width, container_size.height, regions)
 
     return result
