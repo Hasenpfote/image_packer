@@ -47,6 +47,7 @@ def pack(
         options (dict):
     '''
     default_options = {
+        'bg_color': (0.0, 0.0, 0.0, 1.0),
         'margin': (0, 0, 0, 0),
         'collapse_margin': False,
         # If true, the size will be adjusted automatically.
@@ -89,6 +90,8 @@ def pack(
     enable_vertical_flip = options['enable_vertical_flip']
 
     margin_ = options['margin']
+    assert isinstance(margin_, tuple) and len(margin_) == 4
+
     if enable_vertical_flip:
         margin = blf.Thickness(top=margin_[2], right=margin_[1], bottom=margin_[0], left=margin_[3])
     else:
@@ -107,17 +110,23 @@ def pack(
         options=blf_options
     )
 
+    bg_color_ = options['bg_color']
+    assert isinstance(bg_color_, tuple) and (3 <= len(bg_color_) <= 4)
+    bg_color = tuple(int(channel * 255.0) for channel in bg_color_)
+    if len(bg_color) == 3:
+        bg_color += (255, )
+
     if has_alpha:
         blank_image = Image.new(
             mode='RGBA',
             size=(container_width, container_height),
-            color=(0, 0, 0, 255)
+            color=bg_color
         )
     else:
         blank_image = Image.new(
             mode='RGB',
             size=(container_width, container_height),
-            color=(0, 0, 0)
+            color=bg_color[0:3]
         )
 
     for region in regions:
@@ -148,6 +157,23 @@ def main():
             raise argparse.ArgumentTypeError('{} is not a nonnegative integer.'.format(x))
         return x
 
+    def nonnegative_normalized_float(x):
+        x = float(x)
+        if x < 0.0 or x > 1.0:
+            raise argparse.ArgumentTypeError('{} is not in range.'.format(x))
+        return x
+
+    def required_length(nmin, nmax):
+        class RequiredLength(argparse.Action):
+            def __call__(self, parser, args, values, option_string=None):
+                if not nmin <= len(values) <= nmax:
+                    msg = 'argument "{f}" requires between {nmin} and {nmax} arguments'.format(
+                        f=self.dest, nmin=nmin, nmax=nmax)
+                    raise argparse.ArgumentTypeError(msg)
+                setattr(args, self.dest, values)
+
+        return RequiredLength
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -176,6 +202,15 @@ def main():
         action='store',
         required=True,
         help='Specifies a container width.'
+    )
+
+    parser.add_argument(
+        '--bg-color',
+        type=nonnegative_normalized_float,
+        nargs='+',
+        action=required_length(3, 4),
+        help='Specifies a background color as RGB or RGBA. '
+             'The range of each channel is 0 to 1.'
     )
 
     parser.add_argument(
@@ -213,9 +248,9 @@ def main():
         help='Specifies whether to force the power-of-2 rule.'
     )
 
-    args = parser.parse_args()
-
     try:
+        args = parser.parse_args()
+
         options = {
             'margin': args.margin,
             'collapse_margin': args.collapse_margin,
@@ -223,6 +258,8 @@ def main():
             'enable_vertical_flip': not args.disable_vertical_flip,
             'force_pow2': args.force_pow2
         }
+        if args.bg_color is not None:
+            options['bg_color'] = tuple(args.bg_color)
 
         pack(
             input_filepaths=args.input,
