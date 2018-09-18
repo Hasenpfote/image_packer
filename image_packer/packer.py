@@ -136,6 +136,18 @@ def pack(
 def main():
     import argparse
 
+    def positive_integer(x):
+        x = int(x)
+        if x <= 0:
+            raise argparse.ArgumentTypeError('{} is not a positive integer.'.format(x))
+        return x
+
+    def nonnegative_integer(x):
+        x = int(x)
+        if x < 0:
+            raise argparse.ArgumentTypeError('{} is not a nonnegative integer.'.format(x))
+        return x
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -144,7 +156,8 @@ def main():
         type=str,
         action='append',
         required=True,
-        help='Setting the input file-path. An asterisk(*) wildcard can also be used.'
+        help='Specifies a input image file path or directory path. '
+             'The file path can also use an asterisk as a wildcard character.'
     )
 
     parser.add_argument(
@@ -153,51 +166,51 @@ def main():
         type=str,
         action='store',
         required=True,
-        help='Setting the output file-path.'
+        help='Specifies a output image file path.'
     )
 
     parser.add_argument(
         '-w',
         '--width',
-        type=int,
+        type=positive_integer,
         action='store',
         required=True,
-        help='Setting the width of the container.'
+        help='Specifies a container width.'
     )
 
     parser.add_argument(
         '-m',
         '--margin',
-        type=int,
+        type=nonnegative_integer,
         nargs=4,
         default=(0, 0, 0, 0),
         metavar=('top', 'right', 'bottom', 'left'),
         action='store',
-        help='Setting the margin for each side of an image.'
+        help='Specifies a margin around each input image.'
     )
 
     parser.add_argument(
         '--collapse-margin',
         action='store_true',
-        help='This specifies if the margin between images are collapsed into each other.'
+        help='Specifies if the margin between images are collapsed into each other.'
     )
 
     parser.add_argument(
         '--disable-auto-size',
         action='store_true',
-        help='Disable automatic size adjustment.'
+        help='Specifies whether to disable automatic adjustment of container size.'
     )
 
     parser.add_argument(
         '--disable-vertical-flip',
         action='store_true',
-        help='Disable vertical flip.'
+        help='Specifies whether to disable vertical flip.'
     )
 
     parser.add_argument(
         '--force-pow2',
         action='store_true',
-        help='Force the power-of-two rule.'
+        help='Specifies whether to force the power-of-2 rule.'
     )
 
     args = parser.parse_args()
