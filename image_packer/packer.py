@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import argparse
 import glob
+import logging
 import os
 import sys
 import uuid
-import warnings
 from PIL import Image
 from . import blf
 from . import blf_solver
 
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {'.png', '.bmp', '.jpg'}
 
@@ -22,12 +25,12 @@ def extract_filepaths(filepaths, allowed_extensions):
                 if os.path.splitext(filepath_)[1] in allowed_extensions:
                     results.add(filepath_)
                 else:
-                    warnings.warn('The `{}` file has been ignored'.format(filepath_), stacklevel=2)
+                    logger.warning('The `{}` file has been ignored.'.format(filepath_))
         else:
             if os.path.splitext(filepath)[1] in allowed_extensions:
                 results.add(filepath)
             else:
-                warnings.warn('The `{}` file has been ignored'.format(filepath), stacklevel=2)
+                logger.warning('The `{}` file has been ignored.'.format(filepath))
 
     return results
 
@@ -65,12 +68,10 @@ def pack(
     # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
     Image.init()
 
-    with warnings.catch_warnings():
-        warnings.simplefilter('always')
-        input_filepaths = extract_filepaths(
-            filepaths=input_filepaths,
-            allowed_extensions={ext for ext in ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
-        )
+    input_filepaths = extract_filepaths(
+        filepaths=input_filepaths,
+        allowed_extensions={ext for ext in ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
+    )
 
     uid_to_filepath = dict()
     pieces = list()
@@ -143,7 +144,6 @@ def pack(
 
 
 def main():
-    import argparse
 
     def positive_integer(x):
         x = int(x)
@@ -173,6 +173,8 @@ def main():
                 setattr(args, self.dest, values)
 
         return RequiredLength
+
+    logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
 
@@ -250,7 +252,11 @@ def main():
 
     try:
         args = parser.parse_args()
+    except SystemExit:
+        logger.exception('The command terminated abnormally.')
+        raise
 
+    try:
         options = {
             'margin': args.margin,
             'collapse_margin': args.collapse_margin,
@@ -267,7 +273,8 @@ def main():
             container_width=args.width,
             options=options
         )
+        logger.info('The command terminated normally.')
         sys.exit(0)
-    except Exception as e:
-        print(e)
+    except Exception:
+        logger.exception('The command terminated abnormally.')
         sys.exit(1)
