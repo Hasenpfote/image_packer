@@ -28,7 +28,7 @@ class TestPacker(TestCase):
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
-            container_width = 128
+            container_width = 100
 
             options = {
                 'margin': (1, 1, 1, 1)
@@ -50,7 +50,7 @@ class TestPacker(TestCase):
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
-            container_width = 128
+            container_width = 100
 
             options = {
                 'margin': (1, 1, 1, 1)
@@ -64,7 +64,52 @@ class TestPacker(TestCase):
             )
             self.assertTrue(os.path.exists(output_filepath))
 
+    def test_collapse_margin(self):
+        with tempfile.TemporaryDirectory() as workpath:
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+
+            input_filepaths = [workpath + '/*.*', ]
+            output_filepath = workpath + '/output.png'
+            container_width = 66
+
+            options = {
+                'margin': (1, 1, 1, 1),
+                'collapse_margin': True
+            }
+
+            packer.pack(
+                input_filepaths=input_filepaths,
+                output_filepath=output_filepath,
+                container_width=container_width,
+                options=options,
+            )
+            self.assertTrue(os.path.exists(output_filepath))
+
     def test_disable_auto_size(self):
+        with tempfile.TemporaryDirectory() as workpath:
+            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+
+            input_filepaths = [workpath + '/*.*', ]
+            output_filepath = workpath + '/output.png'
+            container_width = 66
+
+            options = {
+                'margin': (1, 1, 1, 1),
+                'enable_auto_size': False
+            }
+
+            packer.pack(
+                input_filepaths=input_filepaths,
+                output_filepath=output_filepath,
+                container_width=container_width,
+                options=options,
+            )
+            self.assertTrue(os.path.exists(output_filepath))
+
         with tempfile.TemporaryDirectory() as workpath:
             tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
             tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
@@ -86,6 +131,7 @@ class TestPacker(TestCase):
                     container_width=container_width,
                     options=options,
                 )
+            self.assertFalse(os.path.exists(output_filepath))
 
     def test_disable_vertical_flip(self):
         with tempfile.TemporaryDirectory() as workpath:
@@ -95,11 +141,10 @@ class TestPacker(TestCase):
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
-            container_width = 128
+            container_width = 100
 
             options = {
                 'margin': (1, 1, 1, 1),
-                'enable_auto_size': True,
                 'enable_vertical_flip': False
             }
 
@@ -111,28 +156,6 @@ class TestPacker(TestCase):
             )
             self.assertTrue(os.path.exists(output_filepath))
 
-        with tempfile.TemporaryDirectory() as workpath:
-            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
-            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-
-            input_filepaths = [workpath + '/*.*', ]
-            output_filepath = workpath + '/output.png'
-            container_width = 128
-
-            options = {
-                'margin': (1, 1, 1, 1),
-                'enable_auto_size': False,
-            }
-
-            packer.pack(
-                input_filepaths=input_filepaths,
-                output_filepath=output_filepath,
-                container_width=container_width,
-                options=options
-            )
-            self.assertTrue(os.path.exists(output_filepath))
-
     def test_force_pow2(self):
         with tempfile.TemporaryDirectory() as workpath:
             tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
@@ -141,12 +164,10 @@ class TestPacker(TestCase):
 
             input_filepaths = [workpath + '/*.*', ]
             output_filepath = workpath + '/output.png'
-            container_width = 60
+            container_width = 66
 
             options = {
                 'margin': (1, 1, 1, 1),
-                'enable_auto_size': True,
-                'enable_vertical_flip': True,
                 'force_pow2': True
             }
 
@@ -161,83 +182,47 @@ class TestPacker(TestCase):
                 self.assertTrue(self.is_power_of_2(im.width))
                 self.assertTrue(self.is_power_of_2(im.height))
 
-        with tempfile.TemporaryDirectory() as workpath:
-            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
-            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+    def test_combination(self):
+        keys = ('collapse_margin', 'enable_auto_size', 'enable_vertical_flip', 'force_pow2')
+        patterns = (
+            (True, True, True, True),
+            (True, False, False, False),
+            (True, True, False, False),
+            (True, False, True, False),
+            (True, False, False, True),
+            (True, True, True, False),
+            (True, True, False, True),
+            (True, False, True, True),
+            (False, True, False, False),
+            (False, True, True, False),
+            (False, True, False, True),
+            (False, True, True, True),
+            (False, False, True, False),
+            (False, False, True, True),
+            (False, False, False, True),
+            (False, False, False, False),
+        )
 
-            input_filepaths = [workpath + '/*.*', ]
-            output_filepath = workpath + '/output.png'
-            container_width = 60
+        container_width = 66
+        for pattern in patterns:
+            options = {k: v for k, v in zip(keys, pattern)}
+            options['margin'] = (1, 1, 1, 1)
+            with tempfile.TemporaryDirectory() as workpath:
+                tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
+                tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
+                tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
 
-            options = {
-                'margin': (0, 0, 0, 0),
-                'enable_auto_size': False,
-                'enable_vertical_flip': True,
-                'force_pow2': True
-            }
+                input_filepaths = [workpath + '/*.*', ]
+                output_filepath = workpath + '/output.png'
 
-            packer.pack(
-                input_filepaths=input_filepaths,
-                output_filepath=output_filepath,
-                container_width=container_width,
-                options=options
-            )
-            self.assertTrue(os.path.exists(output_filepath))
-            with Image.open(fp=output_filepath) as im:
-                self.assertTrue(self.is_power_of_2(im.width))
-                self.assertTrue(self.is_power_of_2(im.height))
-
-        with tempfile.TemporaryDirectory() as workpath:
-            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
-            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-
-            input_filepaths = [workpath + '/*.*', ]
-            output_filepath = workpath + '/output.png'
-            container_width = 60
-
-            options = {
-                'margin': (1, 1, 1, 1),
-                'enable_auto_size': True,
-                'enable_vertical_flip': False,
-                'force_pow2': True
-            }
-
-            packer.pack(
-                input_filepaths=input_filepaths,
-                output_filepath=output_filepath,
-                container_width=container_width,
-                options=options
-            )
-            self.assertTrue(os.path.exists(output_filepath))
-            with Image.open(fp=output_filepath) as im:
-                self.assertTrue(self.is_power_of_2(im.width))
-                self.assertTrue(self.is_power_of_2(im.height))
-
-        with tempfile.TemporaryDirectory() as workpath:
-            tools.make_random_png32_files(width=(1, 64), height=(1, 64), num_files=4, dirpath=workpath)
-            tools.make_random_bmp_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-            tools.make_random_jpeg_files(width=(1, 64), height=(1, 64), num_files=3, dirpath=workpath)
-
-            input_filepaths = [workpath + '/*.*', ]
-            output_filepath = workpath + '/output.png'
-            container_width = 60
-
-            options = {
-                'margin': (0, 0, 0, 0),
-                'enable_auto_size': False,
-                'enable_vertical_flip': False,
-                'force_pow2': True
-            }
-
-            packer.pack(
-                input_filepaths=input_filepaths,
-                output_filepath=output_filepath,
-                container_width=container_width,
-                options=options
-            )
-            self.assertTrue(os.path.exists(output_filepath))
-            with Image.open(fp=output_filepath) as im:
-                self.assertTrue(self.is_power_of_2(im.width))
-                self.assertTrue(self.is_power_of_2(im.height))
+                packer.pack(
+                    input_filepaths=input_filepaths,
+                    output_filepath=output_filepath,
+                    container_width=container_width,
+                    options=options
+                )
+                self.assertTrue(os.path.exists(output_filepath))
+                if options['force_pow2']:
+                    with Image.open(fp=output_filepath) as im:
+                        self.assertTrue(self.is_power_of_2(im.width))
+                        self.assertTrue(self.is_power_of_2(im.height))
