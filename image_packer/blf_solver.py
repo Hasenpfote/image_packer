@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 import os
 from concurrent import futures
 from . import blf
 
 
 __all__ = ['solve']
+
+logger = logging.getLogger(__name__)
 
 
 def calc_minimum_container_size(regions, margin):
@@ -129,26 +132,35 @@ def solve(
                 container_width=container_width,
                 options=options
             )
+            logger.debug(
+                'Result of {}: fl={}, w={}, h={}'.format(
+                    solver.__name__, filling_rate, container_size.width, container_size.height)
+            )
             if filling_rate > best_filling_rate:
                 best_filling_rate = filling_rate
                 result = (container_size.width, container_size.height, regions)
     else:
         max_workers = min(os.cpu_count(), len(solvers))
         with futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures_ = list()
-            for solver in solvers:
-                futures_.append(
-                    executor.submit(
-                        solver,
-                        pieces=pieces,
-                        container_width=container_width,
-                        options=options
-                    )
-                )
-            for future in futures.as_completed(futures_):
+            future_to_name = {
+                executor.submit(
+                    solver,
+                    pieces=pieces,
+                    container_width=container_width,
+                    options=options
+                ): solver.__name__
+                for solver in solvers
+            }
+            for future in futures.as_completed(future_to_name):
                 filling_rate, container_size, regions = future.result()
+                logger.debug(
+                    'Result of {}: fl={}, w={}, h={}'.format(
+                        future_to_name[future], filling_rate, container_size.width, container_size.height)
+                )
                 if filling_rate > best_filling_rate:
                     best_filling_rate = filling_rate
                     result = (container_size.width, container_size.height, regions)
+
+    logger.debug('Final result: fl={}, w={}, h={}'.format(best_filling_rate, result[0], result[1]))
 
     return result
