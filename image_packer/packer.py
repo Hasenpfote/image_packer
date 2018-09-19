@@ -84,7 +84,6 @@ def pack(
             uid = uuid.uuid4()
             uid_to_filepath[uid] = filepath
             pieces.append(blf.Piece(uid=uid, size=blf.Size(width, height)))
-
             if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
                 has_alpha = True
 
@@ -137,7 +136,10 @@ def pack(
         else:
             y = container_height - region.top
         filepath = uid_to_filepath.get(region.uid)
-        with Image.open(filepath) as im:
+        # Open path as file to avoid ResourceWarning.
+        # https://github.com/python-pillow/Pillow/issues/835
+        with open(filepath, 'rb') as fp:
+            im = Image.open(fp=fp)
             blank_image.paste(im=im, box=(x, y))
 
     blank_image.save(fp=output_filepath, format='PNG')
