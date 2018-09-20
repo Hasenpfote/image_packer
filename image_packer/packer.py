@@ -254,8 +254,9 @@ def main():
 
     try:
         args = parser.parse_args()
-    except SystemExit:
-        logger.exception('The command terminated abnormally.')
+    except SystemExit as e:
+        if e.code != 0:
+            logger.exception('The command terminated abnormally.')
         raise
 
     try:
