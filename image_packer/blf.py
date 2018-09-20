@@ -150,6 +150,61 @@ class LocationNotFoundError(Exception):
     pass
 
 
+class CorrectionInfo(object):
+    '''The CorrectionInfo class encapsulates the correction information caused by a margin.'''
+    def __init__(self, margin, collapse_margin=False):
+        self._margin = margin
+        self._h_spacing = margin.left + margin.right
+        self._v_spacing = margin.bottom + margin.top
+
+        if collapse_margin:
+            self._h_overlap = margin.left if margin.left < margin.right else margin.right
+            self._v_overlap = margin.bottom if margin.bottom < margin.top else margin.top
+        else:
+            self._h_overlap, self._v_overlap = 0, 0
+
+        self._offset_x = self._h_spacing - self._h_overlap
+        self._offset_y = self._v_spacing - self._v_overlap
+        self._offset_w = - self._h_spacing + self._h_overlap * 2
+        self._offset_h = - self._v_spacing + self._v_overlap * 2
+
+    @property
+    def margin(self):
+        return self._margin
+
+    @property
+    def horizontal_spacing(self):
+        return self._h_spacing
+
+    @property
+    def vertical_spacing(self):
+        return self._v_spacing
+
+    @property
+    def horizontal_overlap(self):
+        return self._h_overlap
+
+    @property
+    def vertical_overlap(self):
+        return self._v_overlap
+
+    @property
+    def offset_x(self):
+        return self._offset_x
+
+    @property
+    def offset_y(self):
+        return self._offset_y
+
+    @property
+    def offset_width(self):
+        return self._offset_w
+
+    @property
+    def offset_height(self):
+        return self._offset_h
+
+
 def next_power_of_2(x):
     return 2.0 ** math.ceil(math.log2(x))
 
@@ -159,21 +214,14 @@ def find_point_index(
     current_size,
     other_regions,
     container_width,
-    margin,
-    collapse_margin
+    correction_info
 ):
     '''Find a BL point index.'''
-    h_spacing = margin.left + margin.right
-    v_spacing = margin.bottom + margin.top
-
-    if collapse_margin:
-        h_overlap = margin.left if margin.left < margin.right else margin.right
-        v_overlap = margin.bottom if margin.bottom < margin.top else margin.top
-    else:
-        h_overlap, v_overlap = 0, 0
-
-    offset_x = h_spacing - h_overlap
-    offset_y = v_spacing - v_overlap
+    margin = correction_info.margin
+    h_spacing = correction_info.horizontal_spacing
+    v_spacing = correction_info.vertical_spacing
+    offset_x = correction_info.offset_x
+    offset_y = correction_info.offset_y
 
     min_x, min_y = sys.maxsize, sys.maxsize
     last_used_id = None
@@ -219,23 +267,16 @@ def find_point_index(
 def generate_stable_points(
     current_region,
     other_regions,
-    margin,
-    collapse_margin
+    correction_info
 ):
     '''Generate stable points.'''
-    h_spacing = margin.left + margin.right
-    v_spacing = margin.bottom + margin.top
-
-    if collapse_margin:
-        h_overlap = margin.left if margin.left < margin.right else margin.right
-        v_overlap = margin.bottom if margin.bottom < margin.top else margin.top
-    else:
-        h_overlap, v_overlap = 0, 0
-
-    offset_x = h_spacing - h_overlap
-    offset_y = v_spacing - v_overlap
-    offset_w = - h_spacing + h_overlap * 2
-    offset_h = - v_spacing + v_overlap * 2
+    margin = correction_info.margin
+    h_overlap = correction_info.horizontal_overlap
+    v_overlap = correction_info.vertical_overlap
+    offset_x = correction_info.offset_x
+    offset_y = correction_info.offset_y
+    offset_w = correction_info.offset_width
+    offset_h = correction_info.offset_height
 
     stable_points = list()
 
@@ -324,7 +365,11 @@ def blf(pieces, container_width, options=None):
         options = dict()
 
     margin = options.get('margin', Thickness(0, 0, 0, 0))
-    collapse_margin = options.get('collapse_margin', False)
+
+    correction_info = CorrectionInfo(
+        margin=margin,
+        collapse_margin=options.get('collapse_margin', False)
+    )
 
     if options.get('enable_auto_size', True):
         max_width = max(pieces, key=lambda piece: piece.size.width).size.width
@@ -352,8 +397,7 @@ def blf(pieces, container_width, options=None):
             current_size=piece.size,
             other_regions=regions,
             container_width=container_width,
-            margin=margin,
-            collapse_margin=collapse_margin
+            correction_info=correction_info
         )
         point = stable_points.pop(index)
 
@@ -367,8 +411,7 @@ def blf(pieces, container_width, options=None):
         new_stable_points = generate_stable_points(
             current_region=new_region,
             other_regions=regions,
-            margin=margin,
-            collapse_margin=collapse_margin
+            correction_info=correction_info
         )
         stable_points.extend(new_stable_points)
         regions.append(new_region)
