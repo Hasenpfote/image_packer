@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 import argparse
 import glob
+import json
 import logging
 import os
 import sys
 import uuid
+from collections import OrderedDict
 from PIL import Image
 from . import blf
 from . import blf_solver
@@ -123,6 +125,15 @@ class Packer(object):
             options=options
         )
 
+        self._save_configuration(
+            filepath=os.path.splitext(filepath)[0],
+            image_filepath=os.path.normpath(filepath),
+            container_width=container_width,
+            container_height=container_height,
+            regions=regions,
+            options=options
+        )
+
     def _save_image(
         self,
         filepath,
@@ -167,6 +178,36 @@ class Packer(object):
                 blank_image.paste(im=im, box=(x, y))
 
         blank_image.save(fp=filepath, format='PNG')
+
+    def _save_configuration(
+        self,
+        filepath,
+        image_filepath,
+        container_width,
+        container_height,
+        regions,
+        options
+    ):
+        enable_vertical_flip = options['enable_vertical_flip']
+
+        details = OrderedDict()
+        details['filepath'] = image_filepath
+        details['width'] = container_width
+        details['height'] = container_height
+        details['regions'] = OrderedDict()
+        for i, region in enumerate(regions):
+            details['regions'][str(i)] = OrderedDict(
+                [
+                    ('filepath', self._uid_to_filepath[region.uid]),
+                    ('x', region.left),
+                    ('y', region.bottom if enable_vertical_flip else container_height - region.top),
+                    ('width', region.width),
+                    ('height', region.height)
+                ]
+            )
+
+        with open(filepath + '.json', 'w', encoding='utf-8') as fp:
+            json.dump(details, fp, indent=4)
 
 
 def pack(
