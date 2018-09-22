@@ -11,9 +11,9 @@ from . import blf
 from . import blf_solver
 
 
-logger = logging.getLogger(__name__)
+__all__ = ['pack']
 
-ALLOWED_EXTENSIONS = {'.png', '.bmp', '.jpg'}
+logger = logging.getLogger(__name__)
 
 
 def extract_filepaths(filepaths, allowed_extensions):
@@ -35,21 +35,15 @@ def extract_filepaths(filepaths, allowed_extensions):
     return results
 
 
-def pack(
-    input_filepaths,
-    output_filepath,
-    container_width,
-    options=None
-):
-    '''make a atlas.
+class Packer(object):
+    '''The Packer class packs multiple images of different sizes or formats into one image.
 
     Args:
-        input_filepaths (list(str)):
-        output_filepath (str):
-        container_width (int):
-        options (dict):
+        filepaths (list(str)): List of input image file paths.
     '''
-    default_options = {
+    _ALLOWED_EXTENSIONS = {'.png', '.bmp', '.jpg'}
+
+    _DEFAULT_OPTIONS = {
         'bg_color': (0.0, 0.0, 0.0, 1.0),
         'margin': (0, 0, 0, 0),
         'collapse_margin': False,
@@ -60,89 +54,130 @@ def pack(
         # If true, the power-of-two rule is forced.
         'force_pow2': False
     }
-    if options is None:
-        options = default_options
-    else:
-        options = {key: options[key] if key in options else default_options[key] for key in default_options.keys()}
 
-    # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
-    Image.init()
+    def __init__(self, filepaths):
+        # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
+        Image.init()
 
-    input_filepaths = extract_filepaths(
-        filepaths=input_filepaths,
-        allowed_extensions={ext for ext in ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
-    )
-
-    uid_to_filepath = dict()
-    pieces = list()
-    has_alpha = False
-
-    for filepath in input_filepaths:
-        with Image.open(fp=filepath) as im:
-            width = im.width
-            height = im.height
-            uid = uuid.uuid4()
-            uid_to_filepath[uid] = filepath
-            pieces.append(blf.Piece(uid=uid, size=blf.Size(width, height)))
-            if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
-                has_alpha = True
-
-    enable_vertical_flip = options['enable_vertical_flip']
-
-    margin_ = options['margin']
-    assert isinstance(margin_, tuple) and len(margin_) == 4
-
-    if enable_vertical_flip:
-        margin = blf.Thickness(top=margin_[2], right=margin_[1], bottom=margin_[0], left=margin_[3])
-    else:
-        margin = blf.Thickness(top=margin_[0], right=margin_[1], bottom=margin_[2], left=margin_[3])
-
-    blf_options = {
-        'margin': margin,
-        'collapse_margin': options['collapse_margin'],
-        'enable_auto_size': options['enable_auto_size'],
-        'force_pow2': options['force_pow2']
-    }
-
-    container_width, container_height, regions = blf_solver.solve(
-        pieces=pieces,
-        container_width=container_width,
-        options=blf_options
-    )
-
-    bg_color_ = options['bg_color']
-    assert isinstance(bg_color_, tuple) and (3 <= len(bg_color_) <= 4)
-    bg_color = tuple(int(channel * 255.0) for channel in bg_color_)
-    if len(bg_color) == 3:
-        bg_color += (255, )
-
-    if has_alpha:
-        blank_image = Image.new(
-            mode='RGBA',
-            size=(container_width, container_height),
-            color=bg_color
-        )
-    else:
-        blank_image = Image.new(
-            mode='RGB',
-            size=(container_width, container_height),
-            color=bg_color[0:3]
+        filepaths_ = extract_filepaths(
+            filepaths=filepaths,
+            allowed_extensions={ext for ext in self._ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
         )
 
-    for region in regions:
-        x = region.left
-        if enable_vertical_flip:
-            y = region.bottom
+        self._uid_to_filepath = dict()
+        self._pieces = list()
+        self._has_alpha = False
+
+        for filepath in filepaths_:
+            with Image.open(fp=filepath) as im:
+                width = im.width
+                height = im.height
+                uid = uuid.uuid4()
+                self._uid_to_filepath[uid] = filepath
+                self._pieces.append(blf.Piece(uid=uid, size=blf.Size(width, height)))
+                if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
+                    self._has_alpha = True
+
+    def pack(self, filepath, container_width, options=None):
+        '''Packs multiple images of different sizes or formats into one image.
+
+        Args:
+            filepath (str): An output image file path.
+            container_width (int):
+            options (dict):
+        '''
+        if options is None:
+            options = self._DEFAULT_OPTIONS
         else:
-            y = container_height - region.top
-        filepath = uid_to_filepath.get(region.uid)
-        # Open path as file to avoid ResourceWarning.
-        # https://github.com/python-pillow/Pillow/issues/835
-        with open(filepath, 'rb') as fp:
-            im = Image.open(fp=fp)
-            blank_image.paste(im=im, box=(x, y))
+            options = {
+                key: options[key] if key in options else self._DEFAULT_OPTIONS[key]
+                for key in self._DEFAULT_OPTIONS.keys()
+            }
 
-    blank_image.save(fp=output_filepath, format='PNG')
+        margin_ = options['margin']
+        assert isinstance(margin_, tuple) and len(margin_) == 4
+
+        if options['enable_vertical_flip']:
+            margin = blf.Thickness(top=margin_[2], right=margin_[1], bottom=margin_[0], left=margin_[3])
+        else:
+            margin = blf.Thickness(top=margin_[0], right=margin_[1], bottom=margin_[2], left=margin_[3])
+
+        blf_options = {
+            'margin': margin,
+            'collapse_margin': options['collapse_margin'],
+            'enable_auto_size': options['enable_auto_size'],
+            'force_pow2': options['force_pow2']
+        }
+
+        container_width, container_height, regions = blf_solver.solve(
+            pieces=self._pieces,
+            container_width=container_width,
+            options=blf_options
+        )
+
+        self._save_image(
+            filepath=filepath,
+            container_width=container_width,
+            container_height=container_height,
+            regions=regions,
+            options=options
+        )
+
+    def _save_image(
+        self,
+        filepath,
+        container_width,
+        container_height,
+        regions,
+        options
+    ):
+        bg_color_ = options['bg_color']
+        assert isinstance(bg_color_, tuple) and (3 <= len(bg_color_) <= 4)
+        bg_color = tuple(int(channel * 255.0) for channel in bg_color_)
+        if len(bg_color) == 3:
+            bg_color += (255,)
+
+        if self._has_alpha:
+            blank_image = Image.new(
+                mode='RGBA',
+                size=(container_width, container_height),
+                color=bg_color
+            )
+        else:
+            blank_image = Image.new(
+                mode='RGB',
+                size=(container_width, container_height),
+                color=bg_color[0:3]
+            )
+
+        enable_vertical_flip = options['enable_vertical_flip']
+
+        for region in regions:
+            x = region.left
+            if enable_vertical_flip:
+                y = region.bottom
+            else:
+                y = container_height - region.top
+
+            input_filepath = self._uid_to_filepath.get(region.uid)
+            # Open path as file to avoid ResourceWarning.
+            # https://github.com/python-pillow/Pillow/issues/835
+            with open(input_filepath, 'rb') as fp:
+                im = Image.open(fp=fp)
+                blank_image.paste(im=im, box=(x, y))
+
+        blank_image.save(fp=filepath, format='PNG')
+
+
+def pack(
+    input_filepaths,
+    output_filepath,
+    container_width,
+    options=None
+):
+    '''Convenience function to create Packer object and call `pack` method.'''
+    packer = Packer(filepaths=input_filepaths)
+    packer.pack(filepath=output_filepath, container_width=container_width, options=options)
 
 
 def main():
