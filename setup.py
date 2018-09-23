@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import re
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 # Get version without importing, which avoids dependency issues
@@ -14,6 +14,14 @@ def get_version():
 def _long_description():
     with open('README.rst', 'r') as f:
         return f.read()
+
+
+def exclude_packages(names):
+    packages = list()
+    for name in names:
+        for pattern in ('{}', '{}.*', '*.{}', '*.{}.*'):
+            packages.append(pattern.format(name))
+    return packages
 
 
 required = [
@@ -31,7 +39,7 @@ if __name__ == '__main__':
         author_email='Hasenpfote36@gmail.com',
         url='https://github.com/Hasenpfote/',
         download_url='',
-        packages=['image_packer'],
+        packages=find_packages(exclude=exclude_packages(names=('test', 'tests'))),
         keywords=['packing', 'rectangle-packing'],
         classifiers=[
             'Programming Language :: Python',
@@ -51,7 +59,7 @@ if __name__ == '__main__':
         install_requires=required,
         entry_points={
             'console_scripts': [
-                'impack = image_packer.packer:main',
+                'impack=image_packer.cli.pack:main'
             ],
         }
     )
