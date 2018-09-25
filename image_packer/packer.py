@@ -16,23 +16,26 @@ __all__ = ['pack']
 logger = logging.getLogger(__name__)
 
 
-def extract_filepaths(filepaths, allowed_extensions):
-    results = set()
+def distinct_filepaths(filepaths, allowed_extensions):
+    '''Iterate distinct file paths'''
+    processed_filepaths = set()
     for filepath in filepaths:
-        filepath = os.path.normpath(filepath)
-        if '*' in filepath:
-            for filepath_ in glob.glob(filepath):
+        normalized_filepath = os.path.normpath(filepath)
+        if normalized_filepath in processed_filepaths:
+            continue
+        processed_filepaths.add(normalized_filepath)
+
+        if '*' in normalized_filepath:
+            for filepath_ in glob.glob(normalized_filepath):
                 if os.path.splitext(filepath_)[1] in allowed_extensions:
-                    results.add(filepath_)
+                    yield filepath_
                 else:
                     logger.warning('The `{}` file has been ignored.'.format(filepath_))
         else:
-            if os.path.splitext(filepath)[1] in allowed_extensions:
-                results.add(filepath)
+            if os.path.splitext(normalized_filepath)[1] in allowed_extensions:
+                yield normalized_filepath
             else:
-                logger.warning('The `{}` file has been ignored.'.format(filepath))
-
-    return results
+                logger.warning('The `{}` file has been ignored.'.format(normalized_filepath))
 
 
 class Packer(object):
@@ -59,16 +62,12 @@ class Packer(object):
         # Ensure plugins are fully loaded so that Image.EXTENSION is populated.
         Image.init()
 
-        filepaths_ = extract_filepaths(
-            filepaths=filepaths,
-            allowed_extensions={ext for ext in self._ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
-        )
-
         self._uid_to_filepath = dict()
         self._pieces = list()
         self._has_alpha = False
 
-        for filepath in filepaths_:
+        allowed_extensions = {ext for ext in self._ALLOWED_EXTENSIONS if ext in Image.EXTENSION}
+        for filepath in distinct_filepaths(filepaths=filepaths, allowed_extensions=allowed_extensions):
             with Image.open(fp=filepath) as im:
                 width = im.width
                 height = im.height
