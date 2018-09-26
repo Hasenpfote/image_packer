@@ -119,6 +119,12 @@ def main():
         help='Specifies whether to force the power-of-2 rule.'
     )
 
+    parser.add_argument(
+        '--force-absolute-path',
+        action='store_true',
+        help='Specifies whether to force the paths in a configuration file to absolute paths.'
+    )
+
     try:
         args = parser.parse_args()
     except SystemExit as e:
@@ -132,7 +138,8 @@ def main():
             'collapse_margin': args.collapse_margin,
             'enable_auto_size': not args.disable_auto_size,
             'enable_vertical_flip': not args.disable_vertical_flip,
-            'force_pow2': args.force_pow2
+            'force_pow2': args.force_pow2,
+            'force_absolute_path': args.force_absolute_path
         }
         if args.bg_color is not None:
             options['bg_color'] = tuple(args.bg_color)

@@ -55,7 +55,9 @@ class Packer(object):
         # If true, flips the output upside down.
         'enable_vertical_flip': True,
         # If true, the power-of-two rule is forced.
-        'force_pow2': False
+        'force_pow2': False,
+        # If true, all paths are forced to absolute path.
+        'force_absolute_path': False
     }
 
     def __init__(self, filepaths):
@@ -186,16 +188,26 @@ class Packer(object):
         options
     ):
         enable_vertical_flip = options['enable_vertical_flip']
+        force_absolute_path = options['force_absolute_path']
 
-        details = OrderedDict()
-        details['filepath'] = image_filepath
-        details['width'] = container_width
-        details['height'] = container_height
-        details['regions'] = OrderedDict()
+        config = OrderedDict()
+
+        if force_absolute_path and not os.path.isabs(image_filepath):
+            image_filepath = os.path.abspath(image_filepath)
+
+        config['filepath'] = image_filepath
+        config['width'] = container_width
+        config['height'] = container_height
+
+        config['regions'] = OrderedDict()
         for i, region in enumerate(regions):
-            details['regions'][str(i)] = OrderedDict(
+            region_filepath = self._uid_to_filepath[region.uid]
+            if force_absolute_path and not os.path.isabs(region_filepath):
+                region_filepath = os.path.abspath(region_filepath)
+
+            config['regions'][str(i)] = OrderedDict(
                 [
-                    ('filepath', self._uid_to_filepath[region.uid]),
+                    ('filepath', region_filepath),
                     ('x', region.left),
                     ('y', region.bottom if enable_vertical_flip else container_height - region.top),
                     ('width', region.width),
@@ -204,7 +216,7 @@ class Packer(object):
             )
 
         with open(filepath + '.json', 'w', encoding='utf-8') as fp:
-            json.dump(details, fp, indent=4)
+            json.dump(config, fp, indent=4)
 
 
 def pack(
