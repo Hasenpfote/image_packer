@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import collections
 import json
 import logging
 import math
@@ -359,3 +360,19 @@ class TestPacker(TestCase):
 
                     height = region.get('height')
                     self.assertTrue(height is not None and isinstance(height, int))
+
+    def test_distinct_filepaths(self):
+        with tempfile.TemporaryDirectory(dir='.') as workpath:
+            num_files = 10
+            tools.make_random_png24_files(width=(1, 64), height=(1, 64), num_files=num_files, dirpath=workpath)
+
+            filepaths = [
+                os.path.join(workpath, '*.png'),
+                os.path.join(workpath, '..', workpath, '*.png'),
+                os.path.join(os.path.abspath(workpath), '*.png'),
+                os.path.join(os.path.abspath(workpath), '..', workpath, '*.png'),
+            ]
+
+            iter = packer.distinct_filepaths(filepaths=filepaths, allowed_extensions={'.png', })
+            self.assertTrue(isinstance(iter, collections.Iterable))
+            self.assertEqual(sum(1 for _ in iter), num_files)

@@ -20,22 +20,23 @@ def distinct_filepaths(filepaths, allowed_extensions):
     '''Iterate distinct file paths'''
     processed_filepaths = set()
     for filepath in filepaths:
-        normalized_filepath = os.path.normpath(filepath)
-        if normalized_filepath in processed_filepaths:
+        norm_filepath = os.path.normpath(filepath)
+        norm_abs_filepath = os.path.abspath(norm_filepath)
+        if norm_abs_filepath in processed_filepaths:
             continue
-        processed_filepaths.add(normalized_filepath)
+        processed_filepaths.add(norm_abs_filepath)
 
-        if '*' in normalized_filepath:
-            for filepath_ in glob.glob(normalized_filepath):
+        if '*' in norm_filepath:
+            for filepath_ in glob.glob(norm_filepath):
                 if os.path.splitext(filepath_)[1] in allowed_extensions:
                     yield filepath_
                 else:
                     logger.warning('The `{}` file has been ignored.'.format(filepath_))
         else:
-            if os.path.splitext(normalized_filepath)[1] in allowed_extensions:
-                yield normalized_filepath
+            if os.path.splitext(norm_filepath)[1] in allowed_extensions:
+                yield norm_filepath
             else:
-                logger.warning('The `{}` file has been ignored.'.format(normalized_filepath))
+                logger.warning('The `{}` file has been ignored.'.format(norm_filepath))
 
 
 class Packer(object):
