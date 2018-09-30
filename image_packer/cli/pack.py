@@ -53,8 +53,8 @@ def main():
         type=str,
         action='append',
         required=True,
-        help='Specifies a input image file path or directory path. '
-             'The file path can also use an asterisk as a wildcard character.'
+        help='Specifies an input image file path. '
+             'The file path provides support for Unix shell-style wildcards.'
     )
 
     parser.add_argument(
@@ -63,7 +63,7 @@ def main():
         type=str,
         action='store',
         required=True,
-        help='Specifies a output image file path.'
+        help='Specifies an output image file path.'
     )
 
     parser.add_argument(

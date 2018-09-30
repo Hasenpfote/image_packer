@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import fnmatch
 import glob
 import json
 import logging
@@ -16,27 +17,35 @@ __all__ = ['pack']
 logger = logging.getLogger(__name__)
 
 
+def iglob(pathname, allowed_extensions):
+    '''This function is equivalent to iglob, except that it considers allowed extensions.'''
+    if not any(
+        fnmatch.fnmatch(allowed_extension, os.path.splitext(pathname)[1])
+        for allowed_extension in allowed_extensions
+    ):
+        # If the extension is explicit it will be excluded early.
+        return
+
+    for path in glob.iglob(pathname):
+        if os.path.splitext(path)[1] in allowed_extensions:
+            yield path
+
+
 def distinct_filepaths(filepaths, allowed_extensions):
     '''Iterate distinct file paths'''
     processed_filepaths = set()
     for filepath in filepaths:
-        norm_filepath = os.path.normpath(filepath)
-        norm_abs_filepath = os.path.abspath(norm_filepath)
-        if norm_abs_filepath in processed_filepaths:
-            continue
-        processed_filepaths.add(norm_abs_filepath)
+        is_abs = os.path.isabs(filepath)
+        pathname = os.path.normpath(filepath if is_abs else os.path.abspath(filepath))
+        for path in iglob(pathname, allowed_extensions):
+            if path in processed_filepaths:
+                continue
+            processed_filepaths.add(path)
 
-        if '*' in norm_filepath:
-            for filepath_ in glob.glob(norm_filepath):
-                if os.path.splitext(filepath_)[1] in allowed_extensions:
-                    yield filepath_
-                else:
-                    logger.warning('The `{}` file has been ignored.'.format(filepath_))
-        else:
-            if os.path.splitext(norm_filepath)[1] in allowed_extensions:
-                yield norm_filepath
+            if is_abs:
+                yield path
             else:
-                logger.warning('The `{}` file has been ignored.'.format(norm_filepath))
+                yield os.path.relpath(path)
 
 
 class Packer(object):

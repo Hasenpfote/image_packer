@@ -371,6 +371,8 @@ class TestPacker(TestCase):
                 os.path.join(workpath, '..', workpath, '*.png'),
                 os.path.join(os.path.abspath(workpath), '*.png'),
                 os.path.join(os.path.abspath(workpath), '..', workpath, '*.png'),
+                os.path.join(os.path.abspath(workpath), '*.p?g'),
+                os.path.join(os.path.abspath(workpath), '*.*'),
             ]
 
             iter = packer.distinct_filepaths(filepaths=filepaths, allowed_extensions={'.png', })
