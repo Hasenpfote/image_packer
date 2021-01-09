@@ -1,7 +1,4 @@
-`License <https://github.com/Hasenpfote/image_packer/blob/master/LICENSE>`__
-`Build Status <https://travis-ci.org/Hasenpfote/image_packer>`__ `PyPI
-version <https://badge.fury.io/py/image-packer>`__
-`Pyversions <https://img.shields.io/pypi/pyversions/image-packer.svg?style=flat>`__
+|License| |Build Status| |PyPI version| |Pyversions|
 
 image_packer
 ============
@@ -9,9 +6,9 @@ image_packer
 About
 -----
 
-| Pack multiple images of different sizes or formats into one image.
-| - Supported image input formats: - png, bmp, jpg - Supported image
-  output formats: - png(24 or 32bits)
+Pack multiple images of different sizes or formats into one image. -
+Supported image input formats: - png, bmp, jpg - Supported image output
+formats: - png(24 or 32bits)
 
 .. figure:: https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png
    :alt: atlas
@@ -78,3 +75,12 @@ License
 -------
 
 This software is released under the MIT License, see LICENSE.
+
+.. |License| image:: https://img.shields.io/badge/license-MIT-brightgreen.svg
+   :target: https://github.com/Hasenpfote/image_packer/blob/master/LICENSE
+.. |Build Status| image:: https://travis-ci.com/Hasenpfote/image_packer.svg?branch=master
+   :target: https://travis-ci.com/Hasenpfote/image_packer
+.. |PyPI version| image:: https://badge.fury.io/py/image-packer.svg
+   :target: https://badge.fury.io/py/image-packer
+.. |Pyversions| image:: https://img.shields.io/pypi/pyversions/image-packer.svg?style=flat
+   :target: https://img.shields.io/pypi/pyversions/image-packer.svg?style=flat
