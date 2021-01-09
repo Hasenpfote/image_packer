@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Hasenpfote/image_packer/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/Hasenpfote/image_packer.svg?branch=master)](https://travis-ci.org/Hasenpfote/image_packer)
+[![Build Status](https://travis-ci.com/Hasenpfote/image_packer.svg?branch=master)](https://travis-ci.com/Hasenpfote/image_packer)
 [![PyPI version](https://badge.fury.io/py/image-packer.svg)](https://badge.fury.io/py/image-packer)
 [![Pyversions](https://img.shields.io/pypi/pyversions/image-packer.svg?style=flat)](https://img.shields.io/pypi/pyversions/image-packer.svg?style=flat)
 
@@ -7,7 +7,7 @@ image_packer
 ============
 
 ## About
-Pack multiple images of different sizes or formats into one image.  
+Pack multiple images of different sizes or formats into one image.
 - Supported image input formats:
   - png, bmp, jpg
 - Supported image output formats:
@@ -16,7 +16,7 @@ Pack multiple images of different sizes or formats into one image.
 ![atlas](https://raw.githubusercontent.com/Hasenpfote/image_packer/master/example/image/atlas.png)
 
 ## Compatibility
-image_packer works with Python 3.4 or higher.  
+image_packer works with Python 3.4 or higher.
 
 ## Dependencies
 * Pillow
@@ -56,7 +56,7 @@ packer.pack(
 )
 ```
 
-## Command-line Tool  
+## Command-line Tool
 ```
 $ impack -i "./image/*.png" -i "./image/*.jpg" -i "./image/*.bmp" -o "./image/atlas.png" -w 128 -m 1 1 1 1
 ```
