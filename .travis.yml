@@ -15,7 +15,13 @@ matrix:
 
 install:
   - pip install pipenv
-  - pipenv install --dev
+  - |
+    if [[ "$TRAVIS_PYTHON_VERSION" == "3.4" ]]; then
+      pip install pip==9.0.3
+      pipenv install --dev --skip-lock
+    else
+      pipenv install --dev
+    fi
 
 script:
   - pipenv run tox
